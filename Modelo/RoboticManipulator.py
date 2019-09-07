@@ -1,6 +1,8 @@
 import math
 
-class RoboticManipulator():
+
+class RoboticManipulator:
+
     def __init__(self, L1, L2, L3, L4, position=[0, 0, 0]):
 
         self._L1 = L1
