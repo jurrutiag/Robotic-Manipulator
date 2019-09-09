@@ -1,6 +1,6 @@
 import bpy
 from math import radians
-
+import numpy as np
 
 class BlenderDriver:
 
@@ -9,6 +9,10 @@ class BlenderDriver:
         self._target = target
         self._size = size
         self._dimension2scale = 1/2
+
+        self._a1inicial = np.array([0, 0, radians(-90)])
+        self._a2inicial = np.array([radians(90), 0, 0])
+        self._a3inicial = np.array([radians(-90), 0, 0])
 
     def execute(self):
         A1 = bpy.data.objects["Aone"]
@@ -37,13 +41,14 @@ class BlenderDriver:
 
         bpy.context.scene.frame_set(frame_num)
 
-        A1.rotation_euler = (0, 0, 0)
-        A2.rotation_euler = (0, 0, 0)
-        A3.rotation_euler = (0, 0, 0)
+        A1.rotation_euler = self._a1inicial
+        A2.rotation_euler = self._a2inicial
+        A3.rotation_euler = self._a3inicial
 
         L1.scale = (0.5, 0.5, self._size[0] * self._dimension2scale)
         L2.scale = (0.5, 0.5, self._size[1] * self._dimension2scale)
         L3.scale = (0.5, 0.5, self._size[2] * self._dimension2scale)
+        L4.scale = (0.5, 0.5, self._size[3] * self._dimension2scale)
 
         A1.location = (0, 0, -self._size[0])
         A2.location = (0, 0, -self._size[1])
@@ -57,10 +62,10 @@ class BlenderDriver:
 
         TargetElement.keyframe_insert(data_path="location", index=-1)
 
-        rotation1 = [(0, 0, radians(theta_1)), A1]
-        rotation2 = [(radians(theta_2), 0, radians(theta_1)), A1]
-        rotation3 = [(radians(theta_3), 0, 0), A2]
-        rotation4 = [(radians(theta_4), 0, 0), A3]
+        rotation1 = [np.array([0, 0, -radians(theta_1)]) + self._a1inicial, A1]
+        rotation2 = [np.array([-radians(theta_2), 0, -radians(theta_1)]) + self._a1inicial, A1]
+        rotation3 = [np.array([-radians(theta_3), 0, 0]) + self._a2inicial, A2]
+        rotation4 = [np.array([-radians(theta_4), 0, 0]) + self._a3inicial, A3]
 
         rotations = (rotation1, rotation2, rotation3, rotation4)
 
@@ -77,5 +82,16 @@ class BlenderDriver:
 
 
 if __name__ == "__main__":
-    driver = BlenderDriver((90, -30, 10, -20), (20, 10, 10), (10, 5, 5, 5))
+    import sys
+    sys.path.insert(1, 'D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model')
+
+    import RoboticManipulator
+
+    rb = RoboticManipulator.RoboticManipulator(5, 5, 5, 5)
+
+    angles = (45, -10, 10, 15)
+
+    rb.anglesToPosition(angles[0], angles[1], angles[2], angles[3])
+
+    driver = BlenderDriver(angles, rb.getPosition(), (5, 5, 5, 5))
     driver.execute()

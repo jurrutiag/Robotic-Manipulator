@@ -26,12 +26,16 @@ class RoboticManipulator:
         :return: None
         :rtype: None
         """
+        theta_1 = math.radians(theta_1)
+        theta_2 = math.radians(theta_2)
+        theta_3 = math.radians(theta_3)
+        theta_4 = math.radians(theta_4)
 
-        XYprojection = self._L2 * math.cos(theta_1) + self._L3 + self._L4 * math.cos(theta_4)
+        XYprojection = self._L2 * math.cos(theta_2) + self._L3 * math.cos(theta_3 + theta_2) + self._L4 * math.cos(theta_4 + theta_3 + theta_2)
 
         self._position[0] = XYprojection * math.cos(theta_1)
         self._position[1] = XYprojection * math.sin(theta_1)
-        self._position[2] = self._L1 + self._L2 * math.sin(theta_2) + self._L3 * math.sin(theta_3) + self._L4 * math.sin(theta_4)
+        self._position[2] = self._L1 + self._L2 * math.sin(theta_2) + self._L3 * math.sin(theta_3 + theta_2) + self._L4 * math.sin(theta_4 + theta_3 + theta_2)
 
     def getPosition(self):
         return self._position
