@@ -62,12 +62,16 @@ class GeneticAlgorithm:
 
         # First generation fitness
         self.evaluateFitness(self._population)
+        self.getBestAndAverage()
 
         while True:
             # Probabilities of selection for each individual is calculated
             fitness_values = []
             for individual in self._population:
                 fitness_values.append(individual.getFitness())
+
+
+
             probabilities = self.probabilitiesOfSelection(fitness_values)
 
             # Selection of parents
@@ -84,6 +88,7 @@ class GeneticAlgorithm:
 
             # Parents are replaced by children
             self.replacement()
+            self.getBestAndAverage()
 
             # Correct angles out of the range
             self.angleCorrection()
@@ -123,7 +128,6 @@ class GeneticAlgorithm:
 
         #lista de individuos
         self._generation = 1
-        self.getBestAndAverage()
         self._population = results
 
     def evaluateFitness(self, population):
@@ -239,7 +243,6 @@ class GeneticAlgorithm:
         self._parents = []
         self._children = []
         self._generation += 1
-        self.getBestAndAverage()
 
     def terminationCondition(self):
         generationLimitCondition = self._generation > self._generation_threshold
