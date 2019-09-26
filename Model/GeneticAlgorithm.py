@@ -5,6 +5,7 @@ import random
 import Individual
 import RoboticManipulator
 import FitnessFunction
+import time
 
 class GeneticAlgorithm:
 
@@ -49,13 +50,17 @@ class GeneticAlgorithm:
         self._progress_threshold = progress_threshold
         self._generations_progress_threshold = generations_progress_threshold
 
+        # Algorithm timing
 
+        self._start_time = 0
 
         # Final Results
 
         self._best_individual = None
 
     def runAlgorithm(self):
+
+        self._start_time = time.time()
 
         # First generation gets created
         self.initialization()
@@ -64,6 +69,9 @@ class GeneticAlgorithm:
         self.evaluateFitness(self._population)
 
         while True:
+
+            self.printGenerationData()
+
             # Probabilities of selection for each individual is calculated
             fitness_values = []
             for individual in self._population:
@@ -288,6 +296,10 @@ class GeneticAlgorithm:
         plt.ylabel('Función de Fitness', fontsize=10)
         plt.suptitle('Evolución del algoritmo genético')
         plt.show()
+
+    def printGenerationData(self):
+        t = time.time() - self._start_time
+        print(f"| Generation: {self._generation}| Best Generation Fitness: {self._best_case[self._generation - 1]} | Mean Generation Fitness: {self._average_case[self._generation - 1]} | Total time: {t} |")
 
     def getPopulation(self):
         return self._population

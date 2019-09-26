@@ -88,6 +88,8 @@ class BlenderDriver:
         #         frame_num += self._framejump
         #         bpy.context.scene.frame_set(frame_num)
 
+        bpy.context.scene.frame_set(frame_num)
+
         for theta in self._thetas:
             frame_num += 1
 
@@ -95,6 +97,13 @@ class BlenderDriver:
             A2.rotation_euler = [0, theta[1], 0]
             A3.rotation_euler = [0, theta[2], 0]
             A4.rotation_euler = [0, theta[3], 0]
+
+            A1.keyframe_insert(data_path="rotation_euler", index=-1)
+            A2.keyframe_insert(data_path="rotation_euler", index=-1)
+            A3.keyframe_insert(data_path="rotation_euler", index=-1)
+            A4.keyframe_insert(data_path="rotation_euler", index=-1)
+
+            bpy.context.scene.frame_set(frame_num)
 
 if __name__ == "__main__":
     import GeneticAlgorithm
@@ -105,23 +114,22 @@ if __name__ == "__main__":
 
     import RoboticManipulator
 
-    np.random.seed(0)
+    np.random.seed(0)  # for testing
 
-    ga = GeneticAlgorithm.GeneticAlgorithm(desired_position=[3, 0, 0])
+    desired_position = [3, 3, 3]
+    manipulator_dimensions = [5, 5, 5, 5]
+    manipulator_mass = [1, 1, 1]
 
-    ga.initialization()
+    RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
+    GA = GeneticAlgorithm(desired_position)
 
-    print("Individual:")
-    individual = ga.getPopulation()[0]
-    print(individual.getGenes()[:-1])
-
+    GA.initialization()
+    individual = GA.getPopulation()[0]
     final_angle = individual.getFinalAngle()
-
-    rb = RoboticManipulator.RoboticManipulator(1, 1, 1, 1)
 
     angles = np.degrees(final_angle)
 
-    rb.anglesToPosition(angles[0], angles[1], angles[2], angles[3])
+    target_position = GA.getManipulator().anglesToPosition(angles[0], angles[1], angles[2], angles[3])[2]
 
-    driver = BlenderDriver(angles, rb.getPosition(), (5, 5, 5, 5))
+    driver = BlenderDriver(individual.getGenes(), target_position, manipulator_dimensions)
     driver.execute()
