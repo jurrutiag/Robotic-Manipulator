@@ -24,13 +24,7 @@ class FitnessFunction:
 
         torques_error = sum_torques @ self._torques_ponderations
 
-        print(torques_error)
-
-        print(positions[-1][6:9])
-
         distance_error = np.linalg.norm(self._desired_position - positions[-1][6:9], ord=2)
-
-        print(distance_error)
 
         fitness = 1 / (1 + self._torques_error_ponderation * torques_error + self._distance_error_ponderation * distance_error)
 
@@ -103,8 +97,8 @@ class FitnessFunction:
     def getTorques(self, angularAccelerations, inertias, positions):
 
         g = 9.8
-
         gravity_torques = []
+        mass = self._manipulator.getMass()
 
         for pos in positions:
             r_1 = pos[0:3]
@@ -119,13 +113,11 @@ class FitnessFunction:
             force_2 = np.array([0, 0, -(mass[1] + mass[2]) * g])
             force_3 = np.array([0, 0, -mass[2] * g])
 
-            gravity_torque_1 = np.norm(np.cross(mass_center1, force_1), ord=2)
-            gravity_torque_2 = np.norm(np.cross(mass_center2, force_2), ord=2)
-            gravity_torque_3 = np.norm(np.cross(mass_center3, force_3), ord=2)
+            gravity_torque_1 = np.linalg.norm(np.cross(mass_center1, force_1), ord=2)
+            gravity_torque_2 = np.linalg.norm(np.cross(mass_center2, force_2), ord=2)
+            gravity_torque_3 = np.linalg.norm(np.cross(mass_center3, force_3), ord=2)
 
             gravity_torques.append([0, gravity_torque_1, gravity_torque_2, gravity_torque_3])
-
-        gravity_torques = None
 
         return angularAccelerations * inertias - gravity_torques
 

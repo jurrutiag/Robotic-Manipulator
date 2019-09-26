@@ -15,23 +15,17 @@ class RoboticManipulator:
     def anglesToPositions(self, theta_1, theta_2, theta_3, theta_4):
         """
 
-        :param theta_1: Angle from X to the arm on XY plane, A1 origin
+        :param theta_1: Angle in radians from X to the arm on XY plane, A1 origin
         :type theta_1: double
-        :param theta_2: Angle from X to L2 on XZ plane, A2 origin
+        :param theta_2: Angle in radians from X to L2 on XZ plane, A2 origin
         :type theta_2: double
-        :param theta_3: Angle from X to L3 on XZ plane, A3 origin
+        :param theta_3: Angle in radians from X to L3 on XZ plane, A3 origin
         :type theta_3: double
-        :param theta_4: Angle from X to L4 on XZ plane, A4 origin
+        :param theta_4: Angle in radians from X to L4 on XZ plane, A4 origin
         :type theta_4: double
         :return: None
         :rtype: None
         """
-
-        theta_1 = math.radians(theta_1)
-        theta_2 = math.radians(theta_2)
-        theta_3 = math.radians(theta_3)
-        theta_4 = math.radians(theta_4)
-
 
         A3_XYprojection = self._L2 * math.cos(theta_2)
         A3_height = self._L2 * math.sin(theta_2)

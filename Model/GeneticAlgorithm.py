@@ -32,22 +32,26 @@ class GeneticAlgorithm:
 
         self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position)
 
-    def initialization(self, initialAngles, finalAngles):
+    def initialization(self, initialAngles=[0, 0, 0, 0]):
+
         P = np.zeros((self._sampling_points, 4))
         results = []
         for ind in range(self._pop_size):
+
+            finalAngles = np.pi * np.random.random(size=4) - np.pi/2
+
             for h in range(4):
                 #solo el extremo inicial esta fijo
                 average = (self._sampling_points - 2) * np.random.random() + self._sampling_points
                 # average = random.randrange(2, self._sampling_points)
-                std = (self._sampling_points/6 - 1) * np.random.random() + self._sampling_points/6
+                std = (self._sampling_points / 6 - 1) * np.random.random() + 1
                 # std = random.randrange(1,self._sampling_points/6)
-                R= abs(initialAngles[h]-finalAngles[h])
+                R = abs(initialAngles[h] - finalAngles[h])
             
                 for i in range(self._sampling_points):
                     #no estoy seguro si habra que poner step distinto
-                    noise = random.randrange(-3*R, 3*R)*math.exp(-(i-average)**2/(2*std**2))
-                    P[i,h] = initialAngles[h] + (i-1)*(initialAngles[h]*finalAngles[h])/(self._sampling_points-1)+noise
+                    noise = (6*R) *  np.random.random()*math.exp(-(i-average)**2/(2*std**2)) - 3 * R
+                    P[i,h] = initialAngles[h] + (i-1)*(finalAngles[h] - initialAngles[h])/(self._sampling_points-1) + noise
 
 
             results.append(Individual.Individual(P))
@@ -64,18 +68,19 @@ class GeneticAlgorithm:
     def angleCorrection(self, minAngles, maxAngles):
 
         for ind in self._population:
-            for i in ind.shape(0):
-                for h in shape(1):
-                    dif = abs(ind[i,h]-maxAngles[h])
-                    if ind[i,h]>maxAngles[h]:
-                        ind[i,h] =maxAngles[h] - dif
-                    elif ind[i,h]<minAngles[h]:
-                        ind[i,h] =minAngles[h] + dif
+            ind_genes = ind.getGenes()
+            for i in range(ind_genes.shape[0]):
+                for h in range(ind_genes.shape[1]):
+                    dif = abs(ind_genes[i, h] - maxAngles[h])
+                    if ind_genes[i, h] > maxAngles[h]:
+                        ind_genes[i, h] = maxAngles[h] - dif
+                    elif ind_genes[i, h] < minAngles[h]:
+                        ind_genes[i, h] = minAngles[h] + dif
 
 
     #probabilidades de la selección
     def probabilitiesOfSelection(self, fitnessValues):
-        total=0
+        total = 0
         for fitness in fitnessValues:
             total += fitness
         probabilities = []
