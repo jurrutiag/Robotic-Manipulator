@@ -112,7 +112,6 @@ class GeneticAlgorithm:
 
         finalAngles = np.pi * np.random.random(size=(self._pop_size, 4)) - np.pi/2
 
-
         for ind in range(self._pop_size):
 
             # finalAngles = np.pi * np.random.random(size=4) - np.pi/2
@@ -125,11 +124,13 @@ class GeneticAlgorithm:
                 # std = random.randrange(1,self._sampling_points/6)
                 R = abs(self._initial_angles[h] - finalAngles[ind][h])
 
-                for i in range(self._sampling_points):
+                P[0, h] = self._initial_angles[h]
+                for i in range(2, self._sampling_points + 1):
                     #no estoy seguro si habra que poner step distinto
                     A = (6 * R) * np.random.random() - 3 * R
                     noise = A * math.exp(-(i - average) ** 2 / (2 * std ** 2))
-                    P[i,h] = self._initial_angles[h] + (i-1)*(finalAngles[ind][h] - self._initial_angles[h])/(self._sampling_points-1) + noise
+                    #P[i - 1,h] = self._initial_angles[h] + (i - 1) * (finalAngles[ind][h] - self._initial_angles[h])/(self._sampling_points-1) + noise
+                    P[i - 1, h] = self._initial_angles[h] + (finalAngles[ind][h] - self._initial_angles[h]) * 0.5 * (1 + np.tanh((i - average) / std))
 
 
             results.append(Individual.Individual(P))
