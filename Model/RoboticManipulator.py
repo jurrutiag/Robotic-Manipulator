@@ -3,7 +3,7 @@ import math
 
 class RoboticManipulator:
 
-    def __init__(self, dimensions, mass, angleLimits=[[-math.pi/2,math.pi/2],[-math.pi/2,math.pi/2],[-math.pi/2,math.pi/2],[-math.pi/2,math.pi/2]]):
+    def __init__(self, dimensions, mass, angle_limits=([-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2])):
 
         self._L1 = dimensions[0]
         self._L2 = dimensions[1]
@@ -12,7 +12,7 @@ class RoboticManipulator:
 
         self._mass = mass
 
-        self._angleLimits = angleLimits
+        self._angle_limits = angle_limits
 
     def anglesToPositions(self, theta_1, theta_2, theta_3, theta_4):
         """
@@ -63,4 +63,4 @@ class RoboticManipulator:
         return self._mass
 
     def getLimits(self):
-        return self._angleLimits
+        return self._angle_limits

@@ -12,10 +12,10 @@ class BlenderDriver:
 
         self._framejump = 20
 
-        self._a1inicial = np.array([0, 0, 0])
-        self._a2inicial = np.array([0, 0, 0])
-        self._a3inicial = np.array([0, 0, 0])
-        self._a4inicial = np.array([0, 0, 0])
+        self._a1_prev_theta = np.array([0, 0, 0])
+        self._a2_prev_theta = np.array([0, 0, 0])
+        self._a3_prev_theta = np.array([0, 0, 0])
+        self._a4_prev_theta = np.array([0, 0, 0])
 
     def execute(self, instant=False):
         A1 = bpy.data.objects["Aone"]
@@ -41,10 +41,10 @@ class BlenderDriver:
 
         bpy.context.scene.frame_set(frame_num)
 
-        A1.rotation_euler = self._a1inicial
-        A2.rotation_euler = self._a2inicial
-        A3.rotation_euler = self._a3inicial
-        A3.rotation_euler = self._a4inicial
+        A1.rotation_euler = self._a1_prev_theta
+        A2.rotation_euler = self._a2_prev_theta
+        A3.rotation_euler = self._a3_prev_theta
+        A3.rotation_euler = self._a4_prev_theta
 
         L1.scale = (0.5, 0.5, self._size[0] * self._dimension2scale)
         L2.scale = (0.5, 0.5, self._size[1] * self._dimension2scale)
@@ -89,7 +89,12 @@ class BlenderDriver:
         #         bpy.context.scene.frame_set(frame_num)
 
         for theta in self._thetas:
-            pass
+            frame_num += 1
+
+            A1.rotation_euler = [0, 0, theta[0]]
+            A2.rotation_euler = [0, theta[1], 0]
+            A3.rotation_euler = [0, theta[2], 0]
+            A4.rotation_euler = [0, theta[3], 0]
 
 if __name__ == "__main__":
     import GeneticAlgorithm

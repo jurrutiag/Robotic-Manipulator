@@ -8,7 +8,7 @@ import FitnessFunction
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, manipulator_dimensions=[1, 1, 1, 1], manipulator_mass=[1, 1, 1, 1], torques_ponderations=[1, 1, 1, 1], generation_threshold, fitness_threshold, progress_threshold, generations_progress_threshold):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold, fitness_threshold, progress_threshold, generations_progress_threshold):
 
         # Algorithm parameters
 
@@ -30,7 +30,7 @@ class GeneticAlgorithm:
 
         # Manipulator
 
-        self._manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
+        self._manipulator = manipulator
 
         # Fitness Function
 
@@ -194,7 +194,7 @@ class GeneticAlgorithm:
             for j in range(amount):
 
                 if coinToss[i,j] < self._pairing_prob:
-                    child1, child2 = crossover(self._parents[i],self._parents[j])
+                    child1, child2 = self.crossover(self._parents[i],self._parents[j])
                     self._children.append(child1)
                     self._children.append(child2)
                 if len(self._children) == self._pop_size:
