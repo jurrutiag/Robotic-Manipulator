@@ -49,10 +49,12 @@ class GeneticAlgorithm:
     def angleCorrection(self, minAngles, maxAngles):
 
         for ind in self._population:
-            for i in self._population.shape(0):
+            for i in ind.shape(0):
                 for h in shape(1):
                     dif = abs(ind[i,h]-maxAngles[h])
                     if ind[i,h]>maxAngles[h]:
                         ind[i,h] =maxAngles[h] - dif
                     elif ind[i,h]<minAngles[h]:
                         ind[i,h] =minAngles[h] + dif
+
+
