@@ -85,6 +85,9 @@ class GeneticAlgorithm:
             # Parents are replaced by children
             self.replacement()
 
+            # Correct angles out of the range
+            self.angleCorrection()
+
             # Check for termination condition
             if self.terminationCondition():
                 self.findBestIndividual()
@@ -126,17 +129,18 @@ class GeneticAlgorithm:
         for individual in population:
             self._fitness_function.evaluateFitness(individual)
 
-    def angleCorrection(self, minAngles, maxAngles):
-
+    def angleCorrection(self):
+        angleLimits = self._manipulator.getLimits()
         for ind in self._population:
             ind_genes = ind.getGenes()
             for i in range(ind_genes.shape[0]):
                 for h in range(ind_genes.shape[1]):
-                    dif = abs(ind_genes[i, h] - maxAngles[h])
-                    if ind_genes[i, h] > maxAngles[h]:
-                        ind_genes[i, h] = maxAngles[h] - dif
-                    elif ind_genes[i, h] < minAngles[h]:
-                        ind_genes[i, h] = minAngles[h] + dif
+                    maxAngle = angleLimits[h][1]
+                    minAngle = angleLimits[h][1]
+                    if ind_genes[i, h] > maxAngle:
+                        ind_genes[i, h] = maxAngle - (ind_genes[i,h]-maxAngle)
+                    elif ind_genes[i, h] < minAngle:
+                        ind_genes[i, h] = minAngle + (minAngle - ind_genes[i,h])
 
 
     #probabilidades de la selección
