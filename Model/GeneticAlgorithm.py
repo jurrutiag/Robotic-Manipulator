@@ -195,12 +195,16 @@ class GeneticAlgorithm:
         for i in range(amount):
             for j in range(amount):
 
-                if coinToss[i,j] < self._pairing_prob:
+                if coinToss[i,j] < self._pairing_prob and i != j:
                     child1, child2 = self.crossover(self._parents[i], self._parents[j])
                     self._children.append(child1)
                     self._children.append(child2)
                 if len(self._children) == self._pop_size:
                     return
+
+                if i == amount - 1 and j == amount -1:
+                    i=0
+                    j=0
 
     def mutation(self):
         mu = (self._sampling_points - 1) * np.random.random() + 1
