@@ -66,6 +66,12 @@ class GeneticAlgorithm:
         # Children are generated using crossover
         self.generateChildren()
 
+        # Children are mutated
+        self.mutation()
+
+        # Children are evaluated
+        self._fitness_function.evaluateFitness(self._children)
+
     def initialization(self):
 
         P = np.zeros((self._sampling_points, 4))
@@ -84,7 +90,7 @@ class GeneticAlgorithm:
                 std = (self._sampling_points / 6 - 1) * np.random.random() + 1
                 # std = random.randrange(1,self._sampling_points/6)
                 R = abs(self._initial_angles[h] - finalAngles[ind][h])
-            
+
                 for i in range(self._sampling_points):
                     #no estoy seguro si habra que poner step distinto
                     noise = (6*R) *  np.random.random()*math.exp(-(i-average)**2/(2*std**2)) - 3 * R
@@ -151,7 +157,6 @@ class GeneticAlgorithm:
         child_1_genes = np.zeros((self._sampling_points, 4))
         child_2_genes = np.zeros((self._sampling_points, 4))
 
-
         for i in range(self._sampling_points):
             w = 0.5 * (1 + np.tanh((i - mu) / std))
             for h in range(4):
@@ -178,29 +183,32 @@ class GeneticAlgorithm:
 
 
 
-    def mutation(self, average, std):
-        #se lanzan todas las monedas antes de iterar
-        coinTossInd = np.random.rand(1,len(self._children))
-        coinTossJoint = np.random.rand(4, len(self._children))
+    def mutation(self):
 
-        for ind in len(self._children):
+        mu = (self._sampling_points - 1) * np.random.random() + 1
+        std = (self._sampling_points / 6 - 1) * np.random.random() + 1
+
+        #se lanzan todas las monedas antes de iterar
+        coin_toss_ind = np.random.rand(1, len(self._children))
+        coin_toss_joint = np.random.rand(4, len(self._children))
+
+        for ind in range(len(self._children)):
             ind_mat = self._children[ind].getGenes()
-            if self._mut_individual_prob<coinTossInd[ind]:
+            if self._mut_individual_prob < coin_toss_ind[ind]:
                 continue
 
             for h in range(4):
-                if self._mut_joint_prob<coinTossJoint[h, ind]:
+                if self._mut_joint_prob < coin_toss_joint[h, ind]:
                     continue
 
                 ## Diferencia entre valores menores y mayores del hijo que se esta mutando.
-                R = np.max(ind_mat[:,h]) - np.min(ind_mat[:,h])
-                
-                d = np.random.rand(1,self._sampling_points)*2R -R
-                for i in range(self._sampling_points):
-                    ind_mat[i,h] = ind_mat[i,h] + d[i]**math.exp(-(i-average)**2/(2*std**2))
-                    pass
+                R = np.max(ind_mat[:, h]) - np.min(ind_mat[:, h])
 
-            ind.setGenes(ind_mat)
+                d = np.random.rand(1, self._sampling_points) * 2 * R - R
+                for i in range(self._sampling_points):
+                    ind_mat[i, h] = ind_mat[i, h] + d[i] * math.exp((- (i - mu) ** 2) / (2 * std ** 2))
+
+            self._children[ind].setGenes(ind_mat)
 
     def replacement(self):
         self._population = self._children
@@ -248,6 +256,6 @@ class GeneticAlgorithm:
 
     def getManipulator(self):
         return self._manipulator
-            
+
 
 
