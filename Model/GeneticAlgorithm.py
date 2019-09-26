@@ -140,6 +140,22 @@ class GeneticAlgorithm:
         return self._fitness_function
 
 
+    def getBestAndAverage(self):
+        minFitness = 0
+        meanFitness = 0
+        for ind in self._population:
+            fitness = ind.getFitnessFunction
+            minFitness = fitness if fitness < minFitness else minFitness
+            meanFitness += fitness
+        meanFitness /= len(self._population)
+
+        self._best_case.append(minFitness)
+        self._average_case.append(meanFitness)
+
+
+
+
+
     def graph(self, choice):
         axes=fig.add_subplot(111)
         cases = ['mejor caso', 'promedio']
