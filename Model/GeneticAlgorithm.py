@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 import random
 import Individual
 import RoboticManipulator
@@ -32,6 +33,11 @@ class GeneticAlgorithm:
 
         self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position)
 
+        # Fitness Results
+        self._best_case = []
+        self._average_case = []
+        self._generation = 0
+
     def initialization(self, initialAngles=[0, 0, 0, 0]):
 
         P = np.zeros((self._sampling_points, 4))
@@ -57,6 +63,7 @@ class GeneticAlgorithm:
             results.append(Individual.Individual(P))
 
         #lista de individuos
+        self._generation = 1
         self._population = results
 
     def getPopulation(self):
@@ -105,21 +112,25 @@ class GeneticAlgorithm:
 
 
     def mutation(self, average, std):
+        #se lanzan todas las monedas antes de iterar
+        coinTossInd = np.random.rand(1,len(self._children))
+        coinTossJoint = np.random.rand(4, len(self._children))
+
         for ind in len(self._children):
-            ind_mat = ind.getGenes()
-            if self._mut_individual_prob<random.random():
+            ind_mat = self._children[ind].getGenes()
+            if self._mut_individual_prob<coinTossInd[ind]:
                 continue
 
             for h in range(4):
-                if self._mut_joint_prob<random.random():
+                if self._mut_joint_prob<coinTossJoint[h, ind]:
                     continue
 
                 ## Diferencia entre valores menores y mayores del hijo que se esta mutando.
-                # R= abs(initialAngles[h]-finalAngles[h])
+                R = np.max(ind_mat[:,h]) - np.min(ind_mat[:,h])
             
                 for i in range(self._sampling_points):
-                    # d = random.randrange(-R, R)
-                    # ind_mat[i,h] = ind_mat[i,h] + d**math.exp(-(i-average)**2/(2*std**2))
+                    d = random.randrange(-R, R)
+                    ind_mat[i,h] = ind_mat[i,h] + d**math.exp(-(i-average)**2/(2*std**2))
                     pass
 
             ind.setGenes(ind_mat)
@@ -127,6 +138,20 @@ class GeneticAlgorithm:
 
     def getFitnessFunction(self):
         return self._fitness_function
+
+
+    def graph(self, choice):
+        axes=fig.add_subplot(111)
+        cases = ['mejor caso', 'promedio']
+        if choice = 0 or choice > len(cases):
+            plt.plot(range(self._generation)+1, self._best_case, label = cases[i])
+        if choice = 1 or choice > len(cases):
+            plt.plot(range(self._generation)+1, self._average_case, label = cases[i])
+
+        plt.xlabel('Generación', fontsize=10)
+        plt.ylabel('Función de Fitness', fontsize=10)
+        plt.suptitle('Evolución del algoritmo genético')
+        plt.show()
 
 
             
