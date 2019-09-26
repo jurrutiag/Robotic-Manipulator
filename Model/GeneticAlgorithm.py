@@ -234,7 +234,7 @@ class GeneticAlgorithm:
         self._children = []
 
     def terminationCondition(self):
-        generationLimitCondition = generation > self._generation_threshold
+        generationLimitCondition = self._generation > self._generation_threshold
         bestIndividualCondition = self._best_case[len(self.best_case-1)] < self._fitness_threshold
         progressCondition = self._best_case[len(self.best_case-1-self._generations_progress_threshold)] - self._best_case[len(self.best_case-1)] < self._progress_threshold
 
@@ -268,12 +268,13 @@ class GeneticAlgorithm:
 
 
     def graph(self, choice):
-        axes=fig.add_subplot(111)
+        fig = plt.figure()
+        axes = fig.add_subplot(111)
         cases = ['mejor caso', 'promedio']
         if choice == 0 or choice > len(cases):
-            plt.plot(range(self._generation)+1, self._best_case, label = cases[i])
+            plt.plot(range(self._generation + 1), self._best_case, label = cases[choice])
         if choice == 1 or choice > len(cases):
-            plt.plot(range(self._generation)+1, self._average_case, label = cases[i])
+            plt.plot(range(self._generation + 1), self._average_case, label = cases[choice])
 
         plt.xlabel('Generación', fontsize=10)
         plt.ylabel('Función de Fitness', fontsize=10)

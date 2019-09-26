@@ -4,8 +4,8 @@ import numpy as np
 
 class BlenderDriver:
 
-    def __init__(self, theta, target, size):
-        self._theta = theta
+    def __init__(self, thetas, target, size):
+        self._thetas = thetas
         self._target = target
         self._size = size
         self._dimension2scale = 1/2
@@ -37,11 +37,6 @@ class BlenderDriver:
         A3.animation_data_clear()
         A4.animation_data_clear()
 
-        theta_1 = self._theta[0]
-        theta_2 = self._theta[1]
-        theta_3 = self._theta[2]
-        theta_4 = self._theta[3]
-
         frame_num = 0
 
         bpy.context.scene.frame_set(frame_num)
@@ -69,30 +64,32 @@ class BlenderDriver:
 
         TargetElement.keyframe_insert(data_path="location", index=-1)
 
-        rotation1 = [np.array([0, 0, radians(theta_1)]) + self._a1inicial, A1]
-        rotation2 = [np.array([0, radians(theta_2), 0]) + self._a1inicial, A2]
-        rotation3 = [np.array([0, radians(theta_3), 0]) + self._a2inicial, A3]
-        rotation4 = [np.array([0, radians(theta_4), 0]) + self._a3inicial, A4]
+        # rotation1 = [np.array([0, 0, radians(theta_1)]) + self._a1inicial, A1]
+        # rotation2 = [np.array([0, radians(theta_2), 0]) + self._a1inicial, A2]
+        # rotation3 = [np.array([0, radians(theta_3), 0]) + self._a2inicial, A3]
+        # rotation4 = [np.array([0, radians(theta_4), 0]) + self._a3inicial, A4]
 
-        rotations = (rotation1, rotation2, rotation3, rotation4)
+        # rotations = (rotation1, rotation2, rotation3, rotation4)
 
-        frame_num += self._framejump
+        # frame_num += self._framejump
+        #
+        # bpy.context.scene.frame_set(frame_num)
+        #
+        # for rotation in rotations:
+        #
+        #     rotation[1].rotation_euler = rotation[0]
+        #
+        #     A1.keyframe_insert(data_path="rotation_euler", index=-1)
+        #     A2.keyframe_insert(data_path="rotation_euler", index=-1)
+        #     A3.keyframe_insert(data_path="rotation_euler", index=-1)
+        #     A4.keyframe_insert(data_path="rotation_euler", index=-1)
+        #
+        #     if not instant:
+        #         frame_num += self._framejump
+        #         bpy.context.scene.frame_set(frame_num)
 
-        bpy.context.scene.frame_set(frame_num)
-
-        for rotation in rotations:
-
-            rotation[1].rotation_euler = rotation[0]
-
-            A1.keyframe_insert(data_path="rotation_euler", index=-1)
-            A2.keyframe_insert(data_path="rotation_euler", index=-1)
-            A3.keyframe_insert(data_path="rotation_euler", index=-1)
-            A4.keyframe_insert(data_path="rotation_euler", index=-1)
-
-            if not instant:
-                frame_num += self._framejump
-                bpy.context.scene.frame_set(frame_num)
-
+        for theta in self._thetas:
+            pass
 
 if __name__ == "__main__":
     import GeneticAlgorithm
