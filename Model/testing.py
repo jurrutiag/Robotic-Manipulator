@@ -6,4 +6,5 @@ if __name__ == "__main__":
 
     ga = GeneticAlgorithm.GeneticAlgorithm()
 
-    print(ga.initialization())
+    ga.initialization([0, 0, 0, 0], [50, 50, 50, 50])
+    print(ga.getPopulation()[0].getGenes())

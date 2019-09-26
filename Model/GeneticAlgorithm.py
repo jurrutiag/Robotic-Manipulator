@@ -6,7 +6,7 @@ import RoboticManipulator
 
 class GeneticAlgorithm:
 
-    def __init__(self, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, sampling_points=50, manipulator_dimensions=[1, 1, 1, 1]):
+    def __init__(self, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, sampling_points=50, manipulator_dimensions=[1, 1, 1, 1], manipulator_mass=[1, 1, 1, 1]):
 
         # Algorithm parameters
 
@@ -23,28 +23,33 @@ class GeneticAlgorithm:
 
         # Manipulator
 
-        self._manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions)
+        self._manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
 
-    def initialization(self, populationSize, initialAngles, finalAngles, armPivots, steps):
-        P = np.zeros((steps, armPivots))
+    def initialization(self, initialAngles, finalAngles):
+        P = np.zeros((self._sampling_points, 4))
         results = []
-        for ind in range(populationSize):
-            for h in range(armPivots):
+        for ind in range(self._pop_size):
+            for h in range(4):
                 #solo el extremo inicial esta fijo
-                average = random.randrange(2, steps) 
-                std = random.randrange(1,steps/6)
+                average = (self._sampling_points - 2) * np.random.random() + self._sampling_points
+                # average = random.randrange(2, self._sampling_points)
+                std = (self._sampling_points/6 - 1) * np.random.random() + self._sampling_points/6
+                # std = random.randrange(1,self._sampling_points/6)
                 R= abs(initialAngles[h]-finalAngles[h])
             
-                for i in range(steps):
+                for i in range(self._sampling_points):
                     #no estoy seguro si habra que poner step distinto
-                    noise = random.randrange(-3*R, 3*R)*math.exp(-(i-average)**2/(2*std**2))       
-                    P[i,h] = initialAngles[h] + (i-1)*(initialAngles[h]*finalAngles[h])/(steps-1)+noise
+                    noise = random.randrange(-3*R, 3*R)*math.exp(-(i-average)**2/(2*std**2))
+                    P[i,h] = initialAngles[h] + (i-1)*(initialAngles[h]*finalAngles[h])/(self._sampling_points-1)+noise
 
 
-            results.append(P)
+            results.append(Individual.Individual(P))
 
         #lista de individuos
         self._population = results
+
+    def getPopulation(self):
+        return self._population
 
     def angleCorrection(self, minAngles, maxAngles):
 
