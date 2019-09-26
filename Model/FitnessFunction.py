@@ -21,6 +21,21 @@ def getPositions(population, manipulator):
 
     return positions
 
+#asume pesos iguales
+def getCenterOfMass(positionOfWeigths):
+    quantity=0
+    COM=[0,0,0]
+    for weight in positionOfWeigths:
+        quantity+=1
+        COM[0]+=positionOfWeigths[weight][0]
+        COM[1]+=positionOfWeigths[weight][1]
+        COM[2]+=positionOfWeigths[weight][2]
+    COM[0]/=quantity
+    COM[1]/=quantity
+    COM[2]/=quantity
+    return COM
+
+
 
 
 
