@@ -163,7 +163,6 @@ class GeneticAlgorithm:
     def generateChildren(self):
         amount=len(self._parents)
         coinToss = np.random.rand(amount, amount)
-        self._children=[]
         for i in range(amount):
             for j in range(amount):
 
@@ -202,6 +201,15 @@ class GeneticAlgorithm:
                     pass
 
             ind.setGenes(ind_mat)
+
+    def replacement(self):
+        self._population = self._children
+        self._parents = []
+        self._children = []
+
+    def terminationCondition(self):
+
+
 
 
     def getFitnessFunction(self):
