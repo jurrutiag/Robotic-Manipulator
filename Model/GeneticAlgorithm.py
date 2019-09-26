@@ -151,7 +151,7 @@ class GeneticAlgorithm:
             for i in range(ind_genes.shape[0]):
                 for h in range(ind_genes.shape[1]):
                     maxAngle = angleLimits[h][1]
-                    minAngle = angleLimits[h][1]
+                    minAngle = angleLimits[h][0]
                     if ind_genes[i, h] > maxAngle:
                         ind_genes[i, h] = maxAngle - (ind_genes[i,h]-maxAngle)
                     elif ind_genes[i, h] < minAngle:
