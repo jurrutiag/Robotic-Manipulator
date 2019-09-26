@@ -119,5 +119,5 @@ class FitnessFunction:
 
             gravity_torques.append([0, gravity_torque_1, gravity_torque_2, gravity_torque_3])
 
-        return angularAccelerations * inertias - gravity_torques
+        return angularAccelerations * inertias + gravity_torques
 
