@@ -9,7 +9,7 @@ import time
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 0.1, progress_threshold = 1, generations_progress_threshold = 50):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
 
         # Algorithm parameters
 
@@ -35,7 +35,7 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=0)
 
         # Fitness Results
 
@@ -70,7 +70,7 @@ class GeneticAlgorithm:
         self.getBestAndAverage()
 
         while True:
-
+            print([ind.getFitness() for ind in self._population])
             self.printGenerationData()
 
             # Probabilities of selection for each individual is calculated
@@ -165,19 +165,9 @@ class GeneticAlgorithm:
         return probabilities
 
     def selection(self, rate, probabilities):
-        parents = []
         amount_of_parents = int(rate * len(self._population))
 
         self._parents = np.random.choice(self._population, size=amount_of_parents, p=probabilities)
-        # i = 0
-        # while amount_of_parents != 0 and i < len(self._population):
-        #     if probabilities[i] > np.random.random():
-        #         amount_of_parents -= 1
-        #         parents.append(self._population[i])
-        #
-        #     i += 1
-
-        # self._parents = parents
 
     def crossover(self, ind1, ind2):
 
@@ -240,7 +230,7 @@ class GeneticAlgorithm:
             self._children[ind].setGenes(ind_mat)
 
     def replacement(self):
-        self._population = self._children
+        self._population = self._children[:]
         self._parents = []
         self._children = []
         self._generation += 1
@@ -296,7 +286,7 @@ class GeneticAlgorithm:
 
     def printGenerationData(self):
         t = time.time() - self._start_time
-        print(f"| Generation: {self._generation}| Best Generation Fitness: {self._best_case[self._generation - 1]} | Mean Generation Fitness: {self._average_case[self._generation - 1]} | Total time: {t} |")
+        print(f"| Generation: {self._generation}| Best Generation Fitness: {self._best_case[self._generation - 1]} | Mean Generation Fitness: {self._average_case[self._generation - 1]} | Best Overall Fitness: {max(self._best_case)} | Total time: {t} |")
 
     def getPopulation(self):
         return self._population
