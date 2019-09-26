@@ -8,7 +8,7 @@ import FitnessFunction
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold, fitness_threshold, progress_threshold, generations_progress_threshold):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 0.1, progress_threshold = 1, generations_progress_threshold = 50):
 
         # Algorithm parameters
 
