@@ -147,10 +147,10 @@ class GeneticAlgorithm:
 
                 ## Diferencia entre valores menores y mayores del hijo que se esta mutando.
                 R = np.max(ind_mat[:,h]) - np.min(ind_mat[:,h])
-            
+                
+                d = np.random.rand(1,self._sampling_points)*2R -R
                 for i in range(self._sampling_points):
-                    d = random.randrange(-R, R)
-                    ind_mat[i,h] = ind_mat[i,h] + d**math.exp(-(i-average)**2/(2*std**2))
+                    ind_mat[i,h] = ind_mat[i,h] + d[i]**math.exp(-(i-average)**2/(2*std**2))
                     pass
 
             ind.setGenes(ind_mat)
