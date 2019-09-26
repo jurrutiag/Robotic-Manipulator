@@ -95,14 +95,29 @@ class BlenderDriver:
 
 
 if __name__ == "__main__":
+    import GeneticAlgorithm
+    import numpy as np
     import sys
+
     sys.path.insert(1, 'D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model')
 
     import RoboticManipulator
 
-    rb = RoboticManipulator.RoboticManipulator(5, 5, 5, 5)
+    np.random.seed(0)
 
-    angles = (30, 50, 26, -15)
+    ga = GeneticAlgorithm.GeneticAlgorithm(desired_position=[3, 0, 0])
+
+    ga.initialization()
+
+    print("Individual:")
+    individual = ga.getPopulation()[0]
+    print(individual.getGenes()[:-1])
+
+    final_angle = individual.getFinalAngle()
+
+    rb = RoboticManipulator.RoboticManipulator(1, 1, 1, 1)
+
+    angles = np.degrees(final_angle)
 
     rb.anglesToPosition(angles[0], angles[1], angles[2], angles[3])
 

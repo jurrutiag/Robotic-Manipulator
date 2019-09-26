@@ -3,6 +3,7 @@ if __name__ == "__main__":
     import GeneticAlgorithm
     import numpy as np
     import time
+    import pickle
 
     np.random.seed(0)
 
@@ -13,6 +14,8 @@ if __name__ == "__main__":
     print("Individual:")
     individual = ga.getPopulation()[0]
     print(individual.getGenes()[:-1])
+
+    final_angle = individual.getFinalAngle()
 
     ff = ga.getFitnessFunction()
 
@@ -38,3 +41,8 @@ if __name__ == "__main__":
     tf = time.time()
     print(individual.getFitness())
     print(f"Time for evaluation: {tf - t0} seg")
+
+    savefilename = "ga.pickle"
+
+    with open(savefilename, 'wb') as f:
+        pickle.dump(ga, f, pickle.HIGHEST_PROTOCOL)

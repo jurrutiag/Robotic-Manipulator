@@ -20,3 +20,6 @@ class Individual:
 
     def setFitness(self, fitness):
         self._fitness = fitness
+
+    def getFinalAngle(self):
+        return self._genes[-1]
