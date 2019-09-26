@@ -33,10 +33,9 @@ def getAccelerations(positions):
     accelerations = []
 
     for ind in positions:
+        for i, pos in enumerate(ind):
 
-        for pos in ind:
 
-            print(len(ind))
 
 #asume pesos iguales
 def getCenterOfMass(positionOfWeigths):
