@@ -1,6 +1,8 @@
 import math
 import numpy as np
 import random
+import Individual
+import RoboticManipulator
 
 class GeneticAlgorithm:
 
@@ -39,13 +41,13 @@ class GeneticAlgorithm:
         #lista de individuos
         return results
 
-    def angleCorrection(self, minAngles, maxAngles, individuals):
+    def angleCorrection(self, minAngles, maxAngles):
 
-        for ind in individuals:
-            for i in individuals.shape(0):
+        for ind in self._population:
+            for i in self._population.shape(0):
                 for h in shape(1):
-                    dif = abs(individuals[i,h]-maxAngles[h])
-                    if individuals[i,h]>maxAngles[h]:
-                        individuals[i,h] =maxAngles[h] - dif
-                    elif individuals[i,h]<minAngles[h]:
-                        individuals[i,h] =minAngles[h] + dif
+                    dif = abs(ind[i,h]-maxAngles[h])
+                    if ind[i,h]>maxAngles[h]:
+                        ind[i,h] =maxAngles[h] - dif
+                    elif ind[i,h]<minAngles[h]:
+                        ind[i,h] =minAngles[h] + dif
