@@ -3,16 +3,16 @@ import math
 
 class RoboticManipulator:
 
-    def __init__(self, L1, L2, L3, L4, position=[0, 0, 0]):
+    def __init__(self, dimensions, mass):
 
-        self._L1 = L1
-        self._L2 = L2
-        self._L3 = L3
-        self._L4 = L4
+        self._L1 = dimensions[0]
+        self._L2 = dimensions[1]
+        self._L3 = dimensions[2]
+        self._L4 = dimensions[3]
 
-        self._position = position
+        self._mass = mass
 
-    def anglesToPosition(self, theta_1, theta_2, theta_3, theta_4):
+    def anglesToPositions(self, theta_1, theta_2, theta_3, theta_4):
         """
 
         :param theta_1: Angle from X to the arm on XY plane, A1 origin
@@ -26,16 +26,39 @@ class RoboticManipulator:
         :return: None
         :rtype: None
         """
+
         theta_1 = math.radians(theta_1)
         theta_2 = math.radians(theta_2)
         theta_3 = math.radians(theta_3)
         theta_4 = math.radians(theta_4)
 
-        XYprojection = self._L2 * math.cos(theta_2) + self._L3 * math.cos(theta_3 + theta_2) + self._L4 * math.cos(theta_4 + theta_3 + theta_2)
 
-        self._position[0] = XYprojection * math.cos(theta_1)
-        self._position[1] = XYprojection * math.sin(theta_1)
-        self._position[2] = self._L1 + self._L2 * math.sin(theta_2) + self._L3 * math.sin(theta_3 + theta_2) + self._L4 * math.sin(theta_4 + theta_3 + theta_2)
+        A2_XYprojection = self._L2 * math.cos(theta_2)
+        A2_height = self._L2 * math.sin(theta_2)
 
-    def getPosition(self):
-        return self._position
+        A2_position = [
+            A2_XYprojection * math.cos(theta_1),
+            A2_XYprojection * math.sin(theta_1),
+            A2_height
+        ]
+
+        A3_XYprojection = A2_XYprojection + self._L3 * math.cos(theta_2 + theta_3)
+        A3_height = A2_height + self._L3 * math.sin(theta_2 + theta_3)
+
+        A3_position = [
+            A3_XYprojection * math.cos(theta_1),
+            A2_XYprojection * math.sin(theta_1),
+            A3_height
+        ]
+
+        end_effector_XYprojection = A3_XYprojection + self._L4 * math.cos(
+            theta_4 + theta_3 + theta_2)
+        end_effector_height = A3_height + self._L4 * math.sin(theta_2 + theta_3 + theta_4)
+
+        end_effector_position = [
+            end_effector_XYprojection * math.cos(theta_1),
+            end_effector_XYprojection * math.sin(theta_1),
+            end_effector_height
+        ]
+
+        return A2_position, A3_position, end_effector_position
