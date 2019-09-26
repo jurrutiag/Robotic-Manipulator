@@ -69,14 +69,22 @@ class GeneticAlgorithm:
 
         return probabilities
 
+
     def selection(self, rate, probabilities):
         parents=[]
         amountOfParents = rate*len(self._population)
 
+        i=0
         while amountOfParents!=0:
+            if(probabilities[i]>random.random()):
+                amountOfParents-=1
+                parents.append(self._population[i])
+            i+=1
+
+        return parents
 
 
 
-            amountOfParents-=1
+            
 
 
