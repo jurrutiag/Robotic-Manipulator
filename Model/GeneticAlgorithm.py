@@ -3,6 +3,7 @@ import numpy as np
 import random
 import Individual
 import RoboticManipulator
+import FitnessFunction
 
 class GeneticAlgorithm:
 
@@ -26,6 +27,10 @@ class GeneticAlgorithm:
         # Manipulator
 
         self._manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
+
+        # Fitness Function
+
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator)
 
     def initialization(self, initialAngles, finalAngles):
         P = np.zeros((self._sampling_points, 4))
@@ -97,17 +102,20 @@ class GeneticAlgorithm:
     def mutation(self, average, std):
         for ind in len(self._children):
             ind_mat = ind.getGenes()
-            if mut_individual_prob<random.random(): 
+            if self._mut_individual_prob<random.random():
                 continue
 
             for h in range(4):
-                if mut_joint_prob<random.random():
-                    continue 
-                R= abs(initialAngles[h]-finalAngles[h])
+                if self._mut_joint_prob<random.random():
+                    continue
+
+                ## Diferencia entre valores menores y mayores del hijo que se esta mutando.
+                # R= abs(initialAngles[h]-finalAngles[h])
             
                 for i in range(self._sampling_points):
-                    d = random.randrange(-R, R)
-                    ind_mat[i,h] = ind_mat[i,h] + d**math.exp(-(i-average)**2/(2*std**2))
+                    # d = random.randrange(-R, R)
+                    # ind_mat[i,h] = ind_mat[i,h] + d**math.exp(-(i-average)**2/(2*std**2))
+                    pass
 
             ind.setGenes(ind_mat)
 
