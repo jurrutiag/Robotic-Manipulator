@@ -10,14 +10,18 @@ class BlenderDriver:
         self._size = size
         self._dimension2scale = 1/2
 
-        self._a1inicial = np.array([0, 0, radians(-90)])
-        self._a2inicial = np.array([radians(90), 0, 0])
-        self._a3inicial = np.array([radians(-90), 0, 0])
+        self._framejump = 20
 
-    def execute(self):
+        self._a1inicial = np.array([0, 0, 0])
+        self._a2inicial = np.array([0, 0, 0])
+        self._a3inicial = np.array([0, 0, 0])
+        self._a4inicial = np.array([0, 0, 0])
+
+    def execute(self, instant=False):
         A1 = bpy.data.objects["Aone"]
         A2 = bpy.data.objects["Atwo"]
         A3 = bpy.data.objects["Athree"]
+        A4 = bpy.data.objects["Afour"]
 
         L1 = bpy.data.objects["Lone"]
         L2 = bpy.data.objects["Ltwo"]
@@ -31,6 +35,7 @@ class BlenderDriver:
         A1.animation_data_clear()
         A2.animation_data_clear()
         A3.animation_data_clear()
+        A4.animation_data_clear()
 
         theta_1 = self._theta[0]
         theta_2 = self._theta[1]
@@ -44,41 +49,49 @@ class BlenderDriver:
         A1.rotation_euler = self._a1inicial
         A2.rotation_euler = self._a2inicial
         A3.rotation_euler = self._a3inicial
+        A3.rotation_euler = self._a4inicial
 
         L1.scale = (0.5, 0.5, self._size[0] * self._dimension2scale)
         L2.scale = (0.5, 0.5, self._size[1] * self._dimension2scale)
         L3.scale = (0.5, 0.5, self._size[2] * self._dimension2scale)
         L4.scale = (0.5, 0.5, self._size[3] * self._dimension2scale)
 
-        A1.location = (0, 0, -self._size[0])
-        A2.location = (0, 0, -self._size[1])
-        A3.location = (0, 0, self._size[2])
+        A2.location = (0, 0, -self._size[0])
+        A3.location = (0, 0, -self._size[1])
+        A4.location = (0, 0, self._size[2])
 
         TargetElement.location = (self._target[0], self._target[1], self._target[2])
 
         A1.keyframe_insert(data_path="rotation_euler", index=-1)
         A2.keyframe_insert(data_path="rotation_euler", index=-1)
         A3.keyframe_insert(data_path="rotation_euler", index=-1)
+        A4.keyframe_insert(data_path="rotation_euler", index=-1)
 
         TargetElement.keyframe_insert(data_path="location", index=-1)
 
-        rotation1 = [np.array([0, 0, -radians(theta_1)]) + self._a1inicial, A1]
-        rotation2 = [np.array([-radians(theta_2), 0, -radians(theta_1)]) + self._a1inicial, A1]
-        rotation3 = [np.array([-radians(theta_3), 0, 0]) + self._a2inicial, A2]
-        rotation4 = [np.array([-radians(theta_4), 0, 0]) + self._a3inicial, A3]
+        rotation1 = [np.array([0, 0, radians(theta_1)]) + self._a1inicial, A1]
+        rotation2 = [np.array([0, radians(theta_2), 0]) + self._a1inicial, A2]
+        rotation3 = [np.array([0, radians(theta_3), 0]) + self._a2inicial, A3]
+        rotation4 = [np.array([0, radians(theta_4), 0]) + self._a3inicial, A4]
 
         rotations = (rotation1, rotation2, rotation3, rotation4)
 
+        frame_num += self._framejump
 
+        bpy.context.scene.frame_set(frame_num)
 
         for rotation in rotations:
-            frame_num += 10
 
-            bpy.context.scene.frame_set(frame_num)
             rotation[1].rotation_euler = rotation[0]
+
             A1.keyframe_insert(data_path="rotation_euler", index=-1)
             A2.keyframe_insert(data_path="rotation_euler", index=-1)
             A3.keyframe_insert(data_path="rotation_euler", index=-1)
+            A4.keyframe_insert(data_path="rotation_euler", index=-1)
+
+            if not instant:
+                frame_num += self._framejump
+                bpy.context.scene.frame_set(frame_num)
 
 
 if __name__ == "__main__":
@@ -89,7 +102,7 @@ if __name__ == "__main__":
 
     rb = RoboticManipulator.RoboticManipulator(5, 5, 5, 5)
 
-    angles = (45, -10, 10, 15)
+    angles = (30, 50, 26, -15)
 
     rb.anglesToPosition(angles[0], angles[1], angles[2], angles[3])
 
