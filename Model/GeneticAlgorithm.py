@@ -18,6 +18,8 @@ class GeneticAlgorithm:
         self._cross_joint_prob = cross_joint_prob
         self._mut_joint_prob = mut_joint_prob
         self._sampling_points = sampling_points # N_k
+        self._initial_angles = [0, 0, 0, 0]
+        self._rate_of_selection = 0.7
 
         # Algorithm variables
 
@@ -34,17 +36,45 @@ class GeneticAlgorithm:
         self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position)
 
         # Fitness Results
+
         self._best_case = []
         self._average_case = []
         self._generation = 0
 
-    def initialization(self, initialAngles=[0, 0, 0, 0]):
+        # Final Results
+
+        self._best_individual = None
+
+    def runAlgorithm(self):
+
+        # First generation gets created
+        self.initialization()
+
+        # First generation fitness
+        self.evaluateFitness(self._population)
+
+        # Probabilities of selection for each individual is calculated
+        fitness_values = []
+        for individual in self._population:
+            fitness_values.append(individual.getFitness())
+        probabilities = self.probabilitiesOfSelection(fitness_values)
+
+        # Selection of parents
+        self.selection(self._rate_of_selection, probabilities)
+
+        # Children are generated using crossover
+        self.generateChildren()
+
+    def initialization(self):
 
         P = np.zeros((self._sampling_points, 4))
         results = []
+
+        finalAngles = np.pi * np.random.random(size=(self._pop_size, 4)) - np.pi/2
+
         for ind in range(self._pop_size):
 
-            finalAngles = np.pi * np.random.random(size=4) - np.pi/2
+            # finalAngles = np.pi * np.random.random(size=4) - np.pi/2
 
             for h in range(4):
                 #solo el extremo inicial esta fijo
@@ -52,12 +82,12 @@ class GeneticAlgorithm:
                 # average = random.randrange(2, self._sampling_points)
                 std = (self._sampling_points / 6 - 1) * np.random.random() + 1
                 # std = random.randrange(1,self._sampling_points/6)
-                R = abs(initialAngles[h] - finalAngles[h])
+                R = abs(self._initial_angles[h] - finalAngles[ind][h])
             
                 for i in range(self._sampling_points):
                     #no estoy seguro si habra que poner step distinto
                     noise = (6*R) *  np.random.random()*math.exp(-(i-average)**2/(2*std**2)) - 3 * R
-                    P[i,h] = initialAngles[h] + (i-1)*(finalAngles[h] - initialAngles[h])/(self._sampling_points-1) + noise
+                    P[i,h] = self._initial_angles[h] + (i-1)*(finalAngles[ind][h] - self._initial_angles[h])/(self._sampling_points-1) + noise
 
 
             results.append(Individual.Individual(P))
@@ -66,31 +96,10 @@ class GeneticAlgorithm:
         self._generation = 1
         self._population = results
 
-    def crossover(self, ind1, ind2):
+    def evaluateFitness(self, population):
 
-        mu = ((self._sampling_points - 1) - 2) * np.random.random() + 2
-        std = (self._sampling_points / 6 - 1) * np.random.random() + 1
-
-        gene_1 = ind1.getGenes()
-        gene_2 = ind2.getGenes()
-
-        child_1_genes = np.zeros((self._sampling_points, 4))
-        child_2_genes = np.zeros((self._sampling_points, 4))
-
-
-        for i in range(self._sampling_points):
-            w = 0.5 * (1 + np.tanh((i - mu) / std))
-            for h in range(4):
-                child_1_genes[i, h] = w * gene_1[i, h] + (1 - w) * gene_2[i, h]
-                child_2_genes[i, h] = (1 - w) * gene_1[i, h] + w * gene_2[i, h]
-
-        return Individual.Individual(child_1_genes), Individual.Individual(child_2_genes)
-
-    def getPopulation(self):
-        return self._population
-
-    def getManipulator(self):
-        return self._manipulator
+        for individual in population:
+            self._fitness_function.evaluateFitness(individual)
 
     def angleCorrection(self, minAngles, maxAngles):
 
@@ -129,6 +138,26 @@ class GeneticAlgorithm:
             i+=1
 
         self._parents = parents
+
+    def crossover(self, ind1, ind2):
+
+        mu = (self._sampling_points - 1) * np.random.random() + 1
+        std = (self._sampling_points / 6 - 1) * np.random.random() + 1
+
+        gene_1 = ind1.getGenes()
+        gene_2 = ind2.getGenes()
+
+        child_1_genes = np.zeros((self._sampling_points, 4))
+        child_2_genes = np.zeros((self._sampling_points, 4))
+
+
+        for i in range(self._sampling_points):
+            w = 0.5 * (1 + np.tanh((i - mu) / std))
+            for h in range(4):
+                child_1_genes[i, h] = w * gene_1[i, h] + (1 - w) * gene_2[i, h]
+                child_2_genes[i, h] = (1 - w) * gene_1[i, h] + w * gene_2[i, h]
+
+        return Individual.Individual(child_1_genes), Individual.Individual(child_2_genes)
 
 
     def mutation(self, average, std):
@@ -174,14 +203,12 @@ class GeneticAlgorithm:
 
 
 
-
-
     def graph(self, choice):
         axes=fig.add_subplot(111)
         cases = ['mejor caso', 'promedio']
-        if choice = 0 or choice > len(cases):
+        if choice == 0 or choice > len(cases):
             plt.plot(range(self._generation)+1, self._best_case, label = cases[i])
-        if choice = 1 or choice > len(cases):
+        if choice == 1 or choice > len(cases):
             plt.plot(range(self._generation)+1, self._average_case, label = cases[i])
 
         plt.xlabel('Generación', fontsize=10)
@@ -189,7 +216,11 @@ class GeneticAlgorithm:
         plt.suptitle('Evolución del algoritmo genético')
         plt.show()
 
+    def getPopulation(self):
+        return self._population
 
+    def getManipulator(self):
+        return self._manipulator
             
 
 
