@@ -54,23 +54,32 @@ class GeneticAlgorithm:
         # First generation fitness
         self.evaluateFitness(self._population)
 
-        # Probabilities of selection for each individual is calculated
-        fitness_values = []
-        for individual in self._population:
-            fitness_values.append(individual.getFitness())
-        probabilities = self.probabilitiesOfSelection(fitness_values)
+        while True:
+            # Probabilities of selection for each individual is calculated
+            fitness_values = []
+            for individual in self._population:
+                fitness_values.append(individual.getFitness())
+            probabilities = self.probabilitiesOfSelection(fitness_values)
 
-        # Selection of parents
-        self.selection(self._rate_of_selection, probabilities)
+            # Selection of parents
+            self.selection(self._rate_of_selection, probabilities)
 
-        # Children are generated using crossover
-        self.generateChildren()
+            # Children are generated using crossover
+            self.generateChildren()
 
-        # Children are mutated
-        self.mutation()
+            # Children are mutated
+            self.mutation()
 
-        # Children are evaluated
-        self._fitness_function.evaluateFitness(self._children)
+            # Children are evaluated
+            self._fitness_function.evaluateFitness(self._children)
+
+            # Parents are replaced by children
+            self.replacement()
+
+            # Check for termination condition
+            if self.terminationCondition():
+                self.getBestIndividual()
+                return
 
     def initialization(self):
 
@@ -216,9 +225,14 @@ class GeneticAlgorithm:
         self._children = []
 
     def terminationCondition(self):
+        pass
 
-
-
+    def getBestIndividual(self):
+        fit = 0
+        for individual in self._population:
+            if individual.getFitness() >= fit:
+                self._best_individual = individual
+                fit = individual.getFitness()
 
     def getFitnessFunction(self):
         return self._fitness_function
