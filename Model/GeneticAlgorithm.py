@@ -23,7 +23,7 @@ class GeneticAlgorithm:
 
         # Manipulator
 
-        self._manipulator = RoboticManipulator(manipulator_dimensions)
+        self._manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions)
 
     def initialization(self, populationSize, initialAngles, finalAngles, armPivots, steps):
         P = np.zeros((steps, armPivots))

@@ -7,11 +7,14 @@ def getPositions(population, manipulator):
     positions=[]
 
     for ind in population:
-        position = np.array([0,0,0])
-        for ang in ind.shape(0):
-            theta_1, theta_2, theta_3, theta_4 = ind[ang,:]
 
-            pos_2, pos_3, pos_4 = manipulator.anglesToPosition(theta_1, theta_2, theta_3, theta_4)
+        ind_mat = ind.getGenes()
+
+        position = np.array([0,0,0])
+        for ang in ind_mat.shape(0):
+            theta_1, theta_2, theta_3, theta_4 = ind_mat[ang,:]
+
+            position_2, position_3, position_4 = manipulator.anglesToPosition(theta_1, theta_2, theta_3, theta_4)
 
             thisPosition= [position_2, position_3, position_4]
 
@@ -20,6 +23,14 @@ def getPositions(population, manipulator):
         positions.append(position)
 
     return positions
+
+# TODO: cambiar pos_1 por position_1... y ind_mat es Individual()
+def getAccelerations(positions):
+
+    accelerations = []
+
+    for ind in positions:
+        pass
 
 #asume pesos iguales
 def getCenterOfMass(positionOfWeigths):
