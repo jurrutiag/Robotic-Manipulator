@@ -78,7 +78,7 @@ class GeneticAlgorithm:
 
             # Check for termination condition
             if self.terminationCondition():
-                self.getBestIndividual()
+                self.findBestIndividual()
                 return
 
     def initialization(self):
@@ -227,7 +227,7 @@ class GeneticAlgorithm:
     def terminationCondition(self):
         pass
 
-    def getBestIndividual(self):
+    def findBestIndividual(self):
         fit = 0
         for individual in self._population:
             if individual.getFitness() >= fit:
@@ -271,5 +271,7 @@ class GeneticAlgorithm:
     def getManipulator(self):
         return self._manipulator
 
+    def getBestIndividual(self):
+        return self._best_individual
 
 
