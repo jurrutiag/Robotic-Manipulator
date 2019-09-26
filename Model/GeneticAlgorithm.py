@@ -78,8 +78,6 @@ class GeneticAlgorithm:
             for individual in self._population:
                 fitness_values.append(individual.getFitness())
 
-
-
             probabilities = self.probabilitiesOfSelection(fitness_values)
 
             # Selection of parents
@@ -92,7 +90,7 @@ class GeneticAlgorithm:
             self.mutation()
 
             # Children are evaluated
-            self._fitness_function.evaluateFitness(self._children)
+            self.evaluateFitness(self._children)
 
             # Parents are replaced by children
             self.replacement()
@@ -156,31 +154,30 @@ class GeneticAlgorithm:
                     elif ind_genes[i, h] < minAngle:
                         ind_genes[i, h] = minAngle + (minAngle - ind_genes[i,h])
 
-
     #probabilidades de la selección
-    def probabilitiesOfSelection(self, fitnessValues):
-        total = 0
-        for fitness in fitnessValues:
-            total += fitness
+    def probabilitiesOfSelection(self, fitness_values):
+        total = sum(fitness_values)
         probabilities = []
-        for fitness in fitnessValues:
+
+        for fitness in fitness_values:
             probabilities.append(fitness/total)
 
         return probabilities
 
-
     def selection(self, rate, probabilities):
-        parents=[]
-        amountOfParents = int(rate*len(self._population))
+        parents = []
+        amount_of_parents = int(rate * len(self._population))
 
-        i=0
-        while amountOfParents!=0:
-            if(probabilities[i]>random.random()):
-                amountOfParents-=1
-                parents.append(self._population[i])
-            i+=1
+        self._parents = np.random.choice(self._population, size=amount_of_parents, p=probabilities)
+        # i = 0
+        # while amount_of_parents != 0 and i < len(self._population):
+        #     if probabilities[i] > np.random.random():
+        #         amount_of_parents -= 1
+        #         parents.append(self._population[i])
+        #
+        #     i += 1
 
-        self._parents = parents
+        # self._parents = parents
 
     def crossover(self, ind1, ind2):
 
@@ -202,30 +199,25 @@ class GeneticAlgorithm:
         return Individual.Individual(child_1_genes), Individual.Individual(child_2_genes)
 
     def generateChildren(self):
-        amount=len(self._parents)
+        amount = len(self._parents)
         coinToss = np.random.rand(amount, amount)
+
         for i in range(amount):
             for j in range(amount):
 
                 if coinToss[i,j] < self._pairing_prob:
-                    child1, child2 = self.crossover(self._parents[i],self._parents[j])
+                    child1, child2 = self.crossover(self._parents[i], self._parents[j])
                     self._children.append(child1)
                     self._children.append(child2)
                 if len(self._children) == self._pop_size:
                     return
 
-
-
-
-
-
     def mutation(self):
-
         mu = (self._sampling_points - 1) * np.random.random() + 1
         std = (self._sampling_points / 6 - 1) * np.random.random() + 1
 
         #se lanzan todas las monedas antes de iterar
-        coin_toss_ind = np.random.rand(1, len(self._children))
+        coin_toss_ind = np.random.rand(len(self._children))
         coin_toss_joint = np.random.rand(4, len(self._children))
 
         for ind in range(len(self._children)):
@@ -254,8 +246,9 @@ class GeneticAlgorithm:
 
     def terminationCondition(self):
         generationLimitCondition = self._generation > self._generation_threshold
-        bestIndividualCondition = self._best_case[len(self.best_case-1)] < self._fitness_threshold
-        progressCondition = self._best_case[len(self.best_case-1-self._generations_progress_threshold)] - self._best_case[len(self.best_case-1)] < self._progress_threshold
+        bestIndividualCondition = self._best_case[len(self._best_case) - 1] > self._fitness_threshold
+        # progressCondition = self._best_case[len(self._best_case) - 1 - self._generations_progress_threshold] - self._best_case[len(self._best_case) - 1] < self._progress_threshold
+        progressCondition = False
 
         return generationLimitCondition or bestIndividualCondition or progressCondition
 
@@ -273,16 +266,16 @@ class GeneticAlgorithm:
 
 
     def getBestAndAverage(self):
-        minFitness = 0
-        meanFitness = 0
+        max_fitness = 0
+        mean_fitness = 0
         for ind in self._population:
-            fitness = ind.getFitnessFunction
-            minFitness = fitness if fitness < minFitness else minFitness
-            meanFitness += fitness
-        meanFitness /= len(self._population)
+            fitness = ind.getFitness()
+            max_fitness = fitness if fitness > max_fitness else max_fitness
+            mean_fitness += fitness
+        mean_fitness /= len(self._population)
 
-        self._best_case.append(minFitness)
-        self._average_case.append(meanFitness)
+        self._best_case.append(max_fitness)
+        self._average_case.append(mean_fitness)
 
 
 

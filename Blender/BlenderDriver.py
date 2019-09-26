@@ -106,12 +106,12 @@ class BlenderDriver:
             bpy.context.scene.frame_set(frame_num)
 
 if __name__ == "__main__":
-    import GeneticAlgorithm
-    import numpy as np
+
     import sys
 
     sys.path.insert(1, 'D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model')
-
+    import GeneticAlgorithm
+    import numpy as np
     import RoboticManipulator
 
     np.random.seed(0)  # for testing

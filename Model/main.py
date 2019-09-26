@@ -1,6 +1,7 @@
 
 if __name__ == "__main__":
     from GeneticAlgorithm import GeneticAlgorithm
+    from RoboticManipulator import RoboticManipulator
     import numpy as np
     import pickle
 
@@ -10,8 +11,8 @@ if __name__ == "__main__":
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
-    RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
-    GA = GeneticAlgorithm(desired_position)
+    manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
+    GA = GeneticAlgorithm(desired_position, manipulator)
 
     GA.runAlgorithm()
 
