@@ -107,7 +107,7 @@ class GeneticAlgorithm:
             
                 for i in range(self._sampling_points):
                     d = random.randrange(-R, R)
-                    ind_mat[i,h] = ind_mat[i,h] + *(initialAngles[h]*finalAngles[h])/(self._sampling_points-1)+noise
+                    ind_mat[i,h] = ind_mat[i,h] + d**math.exp(-(i-average)**2/(2*std**2))
 
             ind.setGenes(ind_mat)
 
