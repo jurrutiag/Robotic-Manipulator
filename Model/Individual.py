@@ -4,6 +4,7 @@ class Individual:
 
     def __init__(self, genes):
         self._genes = genes
+        self._fitness = None
 
     def getGenes(self):
         return self._genes
@@ -13,3 +14,9 @@ class Individual:
 
     def getMutationProb(self):
         return self._mutation_prob
+
+    def getFitness(self):
+        return self._fitness
+
+    def setFitness(self, fitness):
+        self._fitness = fitness

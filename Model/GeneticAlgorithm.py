@@ -7,7 +7,7 @@ import FitnessFunction
 
 class GeneticAlgorithm:
 
-    def __init__(self, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, sampling_points=50, manipulator_dimensions=[1, 1, 1, 1], manipulator_mass=[1, 1, 1, 1]):
+    def __init__(self, desired_position, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, sampling_points=50, manipulator_dimensions=[1, 1, 1, 1], manipulator_mass=[1, 1, 1, 1], torques_ponderations=[1, 1, 1, 1]):
 
         # Algorithm parameters
 
@@ -30,7 +30,7 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position)
 
     def initialization(self, initialAngles, finalAngles):
         P = np.zeros((self._sampling_points, 4))
@@ -87,7 +87,7 @@ class GeneticAlgorithm:
 
     def selection(self, rate, probabilities):
         parents=[]
-        amountOfParents = rate*len(self._population)
+        amountOfParents = int(rate*len(self._population))
 
         i=0
         while amountOfParents!=0:
@@ -120,8 +120,8 @@ class GeneticAlgorithm:
             ind.setGenes(ind_mat)
 
 
-            
-
+    def getFitnessFunction(self):
+        return self._fitness_function
 
 
             
