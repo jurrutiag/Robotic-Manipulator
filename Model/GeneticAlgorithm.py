@@ -66,6 +66,26 @@ class GeneticAlgorithm:
         self._generation = 1
         self._population = results
 
+    def crossover(self, ind1, ind2):
+
+        mu = ((self._sampling_points - 1) - 2) * np.random.random() + 2
+        std = (self._sampling_points / 6 - 1) * np.random.random() + 1
+
+        gene_1 = ind1.getGenes()
+        gene_2 = ind2.getGenes()
+
+        child_1_genes = np.zeros((self._sampling_points, 4))
+        child_2_genes = np.zeros((self._sampling_points, 4))
+
+
+        for i in range(self._sampling_points):
+            w = 0.5 * (1 + np.tanh((i - mu) / std))
+            for h in range(4):
+                child_1_genes[i, h] = w * gene_1[i, h] + (1 - w) * gene_2[i, h]
+                child_2_genes[i, h] = (1 - w) * gene_1[i, h] + w * gene_2[i, h]
+
+        return Individual.Individual(child_1_genes), Individual.Individual(child_2_genes)
+
     def getPopulation(self):
         return self._population
 
