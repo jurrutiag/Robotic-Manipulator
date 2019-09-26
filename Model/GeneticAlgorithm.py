@@ -44,7 +44,7 @@ class GeneticAlgorithm:
             results.append(P)
 
         #lista de individuos
-        return results
+        self._population = results
 
     def angleCorrection(self, minAngles, maxAngles):
 
@@ -56,5 +56,27 @@ class GeneticAlgorithm:
                         ind[i,h] =maxAngles[h] - dif
                     elif ind[i,h]<minAngles[h]:
                         ind[i,h] =minAngles[h] + dif
+
+
+    #probabilidades de la selección
+    def probabilitiesOfSelection(self, fitnessValues):
+        total=0
+        for fitness in fitnessValues:
+            total += fitness
+        probabilities = []
+        for fitness in fitnessValues:
+            probabilities.append(fitness/total)
+
+        return probabilities
+
+    def selection(self, rate, probabilities):
+        parents=[]
+        amountOfParents = rate*len(self._population)
+
+        while amountOfParents!=0:
+
+
+
+            amountOfParents-=1
 
 
