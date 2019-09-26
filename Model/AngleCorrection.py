@@ -11,5 +11,5 @@ def angleCorrection(minAngles, maxAngles, individuals):
                 if individuals[i,h]>maxAngles[h]:
                     individuals[i,h] =maxAngles[h] - dif
                 elif individuals[i,h]<minAngles[h]:
-                    individuals[i,h] =maxAngles[h] + dif
-            
+                    individuals[i,h] =minAngles[h] + dif
+
