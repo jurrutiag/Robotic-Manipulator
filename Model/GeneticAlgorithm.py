@@ -35,7 +35,7 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=0)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position)
 
         # Fitness Results
 
@@ -112,13 +112,14 @@ class GeneticAlgorithm:
 
         finalAngles = np.pi * np.random.random(size=(self._pop_size, 4)) - np.pi/2
 
+
         for ind in range(self._pop_size):
 
             # finalAngles = np.pi * np.random.random(size=4) - np.pi/2
 
             for h in range(4):
                 #solo el extremo inicial esta fijo
-                average = (self._sampling_points - 2) * np.random.random() + self._sampling_points
+                average = (self._sampling_points - 2) * np.random.random() + 2
                 # average = random.randrange(2, self._sampling_points)
                 std = (self._sampling_points / 6 - 1) * np.random.random() + 1
                 # std = random.randrange(1,self._sampling_points/6)
@@ -126,7 +127,8 @@ class GeneticAlgorithm:
 
                 for i in range(self._sampling_points):
                     #no estoy seguro si habra que poner step distinto
-                    noise = (6*R) *  np.random.random()*math.exp(-(i-average)**2/(2*std**2)) - 3 * R
+                    A = (6 * R) * np.random.random() - 3 * R
+                    noise = A * math.exp(-(i - average) ** 2 / (2 * std ** 2))
                     P[i,h] = self._initial_angles[h] + (i-1)*(finalAngles[ind][h] - self._initial_angles[h])/(self._sampling_points-1) + noise
 
 
