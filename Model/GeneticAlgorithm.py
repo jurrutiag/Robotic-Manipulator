@@ -91,6 +91,7 @@ class GeneticAlgorithm:
             # Check for termination condition
             if self.terminationCondition():
                 self.findBestIndividual()
+                self.graph(2)
                 return
 
     def initialization(self):
@@ -122,6 +123,7 @@ class GeneticAlgorithm:
 
         #lista de individuos
         self._generation = 1
+        self.getBestAndAverage()
         self._population = results
 
     def evaluateFitness(self, population):
@@ -236,6 +238,8 @@ class GeneticAlgorithm:
         self._population = self._children
         self._parents = []
         self._children = []
+        self._generation += 1
+        self.getBestAndAverage()
 
     def terminationCondition(self):
         generationLimitCondition = self._generation > self._generation_threshold
