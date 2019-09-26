@@ -6,5 +6,9 @@ if __name__ == "__main__":
 
     ga = GeneticAlgorithm.GeneticAlgorithm()
 
-    ga.initialization([0, 0, 0, 0], [50, 50, 50, 50])
+    ga.initialization([20, 20, 20, 20], [50, 50, 50, 50])
     print(ga.getPopulation()[0].getGenes())
+
+    print(FitnessFunction.getPositions(ga.getPopulation(), ga.getManipulator())[0])
+
+    FitnessFunction.getAccelerations(FitnessFunction.getPositions(ga.getPopulation(), ga.getManipulator()))

@@ -1,4 +1,5 @@
 import RoboticManipulator
+import numpy as np
 
 
 #retorna pocisiones cartesionas de las tres masas móviles del brazo
@@ -10,27 +11,32 @@ def getPositions(population, manipulator):
 
         ind_mat = ind.getGenes()
 
-        position = np.array([0,0,0])
-        for ang in ind_mat.shape(0):
+        # a2x, a2y, a2z, a3x, a3y, a3z, a4x, a4y, a4z
+
+        position = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0]])
+
+        for ang in range(ind_mat.shape[0]):
             theta_1, theta_2, theta_3, theta_4 = ind_mat[ang,:]
 
-            position_2, position_3, position_4 = manipulator.anglesToPosition(theta_1, theta_2, theta_3, theta_4)
+            position_2, position_3, position_4 = manipulator.anglesToPositions(theta_1, theta_2, theta_3, theta_4)
 
-            thisPosition= [position_2, position_3, position_4]
+            thisPosition= np.hstack([position_2, position_3, position_4])
 
-            np.vstack([position, thisPosition])
+            position = np.vstack([position, thisPosition])
         position= np.delete(position, 0, 0) #primera fila, eje 0
         positions.append(position)
 
     return positions
 
-# TODO: cambiar pos_1 por position_1... y ind_mat es Individual()
 def getAccelerations(positions):
 
     accelerations = []
 
     for ind in positions:
-        pass
+
+        for pos in ind:
+
+            print(len(ind))
 
 #asume pesos iguales
 def getCenterOfMass(positionOfWeigths):

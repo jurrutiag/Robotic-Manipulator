@@ -51,6 +51,9 @@ class GeneticAlgorithm:
     def getPopulation(self):
         return self._population
 
+    def getManipulator(self):
+        return self._manipulator
+
     def angleCorrection(self, minAngles, maxAngles):
 
         for ind in self._population:
