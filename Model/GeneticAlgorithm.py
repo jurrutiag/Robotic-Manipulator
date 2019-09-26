@@ -8,7 +8,7 @@ import FitnessFunction
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, manipulator_dimensions=[1, 1, 1, 1], manipulator_mass=[1, 1, 1, 1], torques_ponderations=[1, 1, 1, 1]):
+    def __init__(self, desired_position, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, manipulator_dimensions=[1, 1, 1, 1], manipulator_mass=[1, 1, 1, 1], torques_ponderations=[1, 1, 1, 1], generation_threshold, fitness_threshold, progress_threshold, generations_progress_threshold):
 
         # Algorithm parameters
 
@@ -41,6 +41,15 @@ class GeneticAlgorithm:
         self._best_case = []
         self._average_case = []
         self._generation = 0
+
+        # Progress Threshold
+
+        self._generation_threshold = generation_threshold
+        self._fitness_threshold = fitness_threshold
+        self._progress_threshold = progress_threshold
+        self._generations_progress_threshold = generations_progress_threshold
+
+
 
         # Final Results
 
@@ -216,6 +225,14 @@ class GeneticAlgorithm:
         self._children = []
 
     def terminationCondition(self):
+        generationLimitCondition = generation > self._generation_threshold
+        bestIndividualCondition = self._best_case[len(self.best_case-1)] < self._fitness_threshold
+        progressCondition = self._best_case[len(self.best_case-1-self._generations_progress_threshold)] - self._best_case[len(self.best_case-1)] < self._progress_threshold
+
+        return generationLimitCondition or bestIndividualCondition or progressCondition
+
+
+
 
 
 
