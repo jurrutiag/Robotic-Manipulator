@@ -235,6 +235,7 @@ class GeneticAlgorithm:
 
     def replacement(self):
         self._population = self._children[:]
+        random.shuffle(self._population)
         self._parents = []
         self._children = []
         self._generation += 1
