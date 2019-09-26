@@ -8,7 +8,7 @@ import FitnessFunction
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, sampling_points=50, manipulator_dimensions=[1, 1, 1, 1], manipulator_mass=[1, 1, 1, 1], torques_ponderations=[1, 1, 1, 1]):
+    def __init__(self, desired_position, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, manipulator_dimensions=[1, 1, 1, 1], manipulator_mass=[1, 1, 1, 1], torques_ponderations=[1, 1, 1, 1]):
 
         # Algorithm parameters
 
@@ -17,6 +17,7 @@ class GeneticAlgorithm:
         self._mut_individual_prob = mut_individual_prob
         self._cross_joint_prob = cross_joint_prob
         self._mut_joint_prob = mut_joint_prob
+        self._pairing_prob = pairing_prob
         self._sampling_points = sampling_points # N_k
 
         # Algorithm variables
@@ -130,6 +131,24 @@ class GeneticAlgorithm:
                 child_2_genes[i, h] = (1 - w) * gene_1[i, h] + w * gene_2[i, h]
 
         return Individual.Individual(child_1_genes), Individual.Individual(child_2_genes)
+
+    def generateChildren(self):
+        amount=len(self._parents)
+        coinToss = np.random.rand(amount, amount)
+        self._children=[]
+        for i in range(amount):
+            for j in range(amount):
+
+                if coinToss[i,j] < self._pairing_prob:
+                    child1, child2 = crossover(self._parents[i],self._parents[j])
+                    self._children.append(child1)
+                    self._children.append(child2)
+                if len(self._children) == self._pop_size:
+                    return
+
+
+
+
 
 
     def mutation(self, average, std):
