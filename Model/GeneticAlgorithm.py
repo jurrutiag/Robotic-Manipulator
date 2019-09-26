@@ -20,6 +20,8 @@ class GeneticAlgorithm:
         # Algorithm variables
 
         self._population = []
+        self._parents = []
+        self._children = []
 
         # Manipulator
 
@@ -86,7 +88,28 @@ class GeneticAlgorithm:
                 parents.append(self._population[i])
             i+=1
 
-        return parents
+        self._parents = parents
+
+
+    def mutation(self, average, std):
+        for ind in len(self._children):
+            ind_mat = ind.getGenes()
+            if mut_individual_prob<random.random(): 
+                continue
+
+            for h in range(4):
+                if mut_joint_prob<random.random():
+                    continue 
+                R= abs(initialAngles[h]-finalAngles[h])
+            
+                for i in range(self._sampling_points):
+                    d = random.randrange(-R, R)
+                    ind_mat[i,h] = ind_mat[i,h] + *(initialAngles[h]*finalAngles[h])/(self._sampling_points-1)+noise
+
+            ind.setGenes(ind_mat)
+
+
+            
 
 
 
