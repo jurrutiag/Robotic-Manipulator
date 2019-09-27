@@ -35,7 +35,7 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=1)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=0)
 
         # Fitness Results
 
@@ -68,6 +68,10 @@ class GeneticAlgorithm:
         # First generation fitness
         self.evaluateFitness(self._population)
         # print(self._population[0].getFitness(), self._population[1].getFitness())
+        # for ind in self._population:
+        #     for ang in np.transpose(ind.getGenes()):
+        #         plt.plot(ang)
+        #     plt.show()
         self.getBestAndAverage()
 
         while True:
@@ -184,6 +188,9 @@ class GeneticAlgorithm:
 
         child_1_genes = np.zeros((self._sampling_points, 4))
         child_2_genes = np.zeros((self._sampling_points, 4))
+
+        child_1_genes[0] = self._initial_angles
+        child_2_genes[0] = self._initial_angles
 
         for i in range(2, self._sampling_points + 1):
             w = 0.5 * (1 + np.tanh((i - mu) / std))
