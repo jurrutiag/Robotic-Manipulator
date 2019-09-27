@@ -6,6 +6,7 @@ import Individual
 import RoboticManipulator
 import FitnessFunction
 import time
+import pickle
 
 class GeneticAlgorithm:
 
@@ -22,6 +23,8 @@ class GeneticAlgorithm:
         self._sampling_points = sampling_points # N_k
         self._initial_angles = [0, 0, 0, 0]
         self._rate_of_selection = 0.3
+        self._safe_save = True
+        self._save_filename = "gasafe.pickle"
 
         # Algorithm variables
 
@@ -67,16 +70,16 @@ class GeneticAlgorithm:
 
         # First generation fitness
         self.evaluateFitness(self._population)
-        # print(self._population[0].getFitness(), self._population[1].getFitness())
-        # for ind in self._population:
-        #     for ang in np.transpose(ind.getGenes()):
-        #         plt.plot(ang)
-        #     plt.show()
         self.getBestAndAverage()
 
         while True:
-            # print([ind.getFitness() for ind in self._population])
-            #self.plotBest()
+
+            if self._generation % 20 == 0 and self._safe_save:
+                with open(self._save_filename, 'wb') as f:
+                    pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
+                    print("| SAVED |")
+
+            self.plotBest()
             self.printGenerationData()
 
             # Probabilities of selection for each individual is calculated
