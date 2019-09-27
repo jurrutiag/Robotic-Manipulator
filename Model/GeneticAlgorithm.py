@@ -11,7 +11,7 @@ import pickle
 class GeneticAlgorithm:
 
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold = 50, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
 
 
         # Algorithm parameters
@@ -25,7 +25,7 @@ class GeneticAlgorithm:
         self._sampling_points = sampling_points # N_k
         self._initial_angles = [0, 0, 0, 0]
 
-        self._rate_of_selection = 0.15
+        self._rate_of_selection = 0.2
         self._safe_save = True
         self._save_filename = "gasafe.pickle"
 
@@ -41,7 +41,7 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=0)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=1)
 
         # Fitness Results
 
@@ -309,9 +309,9 @@ class GeneticAlgorithm:
         fig = plt.figure()
         axes = fig.add_subplot(111)
         cases = ['mejor caso', 'promedio']
-        if choice == 0 or choice > len(cases):
+        if choice == 0 or choice >= len(cases):
             plt.plot(self._best_case, label = cases[0])
-        if choice == 1 or choice > len(cases):
+        if choice == 1 or choice >= len(cases):
             plt.plot(self._average_case, label = cases[1])
 
         plt.xlabel('Generación', fontsize=10)
