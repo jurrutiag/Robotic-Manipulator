@@ -15,16 +15,20 @@ class FitnessFunction:
     def evaluateFitness(self, individual):
 
         positions = self.getPositions(individual)
-        angAccelerations = self.getAngularAccelerations(individual)
-
-        inertias = self.getInertias(positions)
-        torques = self.getTorques(angAccelerations, inertias, positions)
-
-        sum_torques = np.linalg.norm(torques, ord=1, axis=0)
-
-        torques_error = sum_torques @ self._torques_ponderations
 
         distance_error = np.linalg.norm(self._desired_position - positions[-1][6:9], ord=2)
+
+        if self._torques_error_ponderation != 0:
+            angAccelerations = self.getAngularAccelerations(individual)
+
+            inertias = self.getInertias(positions)
+            torques = self.getTorques(angAccelerations, inertias, positions)
+
+            sum_torques = np.linalg.norm(torques, ord=1, axis=0)
+
+            torques_error = sum_torques @ self._torques_ponderations
+        else:
+            torques_error = 0
 
         fitness = 1 / (1 + self._torques_error_ponderation * torques_error + self._distance_error_ponderation * distance_error)
 

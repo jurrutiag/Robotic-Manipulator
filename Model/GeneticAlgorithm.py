@@ -98,7 +98,7 @@ class GeneticAlgorithm:
 
             # Children are generated using crossover
             self.generateChildren()
-
+            print(len(self._children))
             # Children are mutated
             self.mutation()
 
@@ -343,4 +343,8 @@ class GeneticAlgorithm:
     def getBestIndividual(self):
         return self._best_individual
 
+    def getbestCase(self):
+        return self._best_case
 
+    def getAverageCase(self):
+        return self._average_case
