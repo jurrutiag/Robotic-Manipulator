@@ -67,7 +67,6 @@ class GeneticAlgorithm:
 
         # First generation fitness
         self.evaluateFitness(self._population)
-        print(self._population[0].getFitness(), self._population[1].getFitness())
         self.getBestAndAverage()
 
         while True:
@@ -135,9 +134,8 @@ class GeneticAlgorithm:
                     P[i - 1, h] = self._initial_angles[h] + (finalAngles[ind][h] - self._initial_angles[h]) * 0.5 * (1 + np.tanh((i - average) / std))
 
 
-            # results.append(Individual.Individual(P))
-            results.append(P)
-        print(results)
+            results.append(Individual.Individual(P))
+
 
         #lista de individuos
         self._generation = 1
