@@ -10,7 +10,7 @@ import pickle
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.01, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.2, cross_joint_prob=0.5, mut_joint_prob=0.25, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
 
         # Algorithm parameters
 
@@ -22,7 +22,7 @@ class GeneticAlgorithm:
         self._pairing_prob = pairing_prob
         self._sampling_points = sampling_points # N_k
         self._initial_angles = [0, 0, 0, 0]
-        self._rate_of_selection = 0.3
+        self._rate_of_selection = 0.1
         self._safe_save = True
         self._save_filename = "gasafe.pickle"
 
@@ -38,7 +38,7 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=1)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=0)
 
         # Fitness Results
 
@@ -74,7 +74,8 @@ class GeneticAlgorithm:
 
         while True:
 
-            if self._generation % 20 == 0 and self._safe_save:
+            # Save for every 100 generations
+            if self._generation % 100 == 0 and self._safe_save:
                 with open(self._save_filename, 'wb') as f:
                     pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
                     print("| SAVED |")
@@ -223,7 +224,6 @@ class GeneticAlgorithm:
 
     def mutation(self):
 
-
         #se lanzan todas las monedas antes de iterar
         coin_toss_ind = np.random.rand(len(self._children))
         coin_toss_joint = np.random.rand(4, len(self._children))
@@ -293,16 +293,14 @@ class GeneticAlgorithm:
         self._best_case.append(max_fitness)
         self._average_case.append(mean_fitness)
 
-
-
     def graph(self, choice):
         fig = plt.figure()
         axes = fig.add_subplot(111)
         cases = ['mejor caso', 'promedio']
         if choice == 0 or choice > len(cases):
-            plt.plot(range(self._generation + 1), self._best_case, label = cases[choice])
+            plt.plot(self._best_case, label = cases[choice])
         if choice == 1 or choice > len(cases):
-            plt.plot(range(self._generation + 1), self._average_case, label = cases[choice])
+            plt.plot(self._average_case, label = cases[choice])
 
         plt.xlabel('Generación', fontsize=10)
         plt.ylabel('Función de Fitness', fontsize=10)

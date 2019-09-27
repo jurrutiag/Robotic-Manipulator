@@ -64,3 +64,6 @@ class RoboticManipulator:
 
     def getLimits(self):
         return self._angle_limits
+
+if __name__ == "__main__":
+    rb = RoboticManipulator((5, 5, 5, 5), (1, 1, 1))
