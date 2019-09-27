@@ -9,7 +9,7 @@ import time
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
 
         # Algorithm parameters
 
@@ -35,7 +35,7 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=1)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=0)
 
         # Fitness Results
 
@@ -68,6 +68,10 @@ class GeneticAlgorithm:
         # First generation fitness
         self.evaluateFitness(self._population)
         # print(self._population[0].getFitness(), self._population[1].getFitness())
+        # for ind in self._population:
+        #     for ang in np.transpose(ind.getGenes()):
+        #         plt.plot(ang)
+        #     plt.show()
         self.getBestAndAverage()
 
         while True:
@@ -184,6 +188,9 @@ class GeneticAlgorithm:
 
         child_1_genes = np.zeros((self._sampling_points, 4))
         child_2_genes = np.zeros((self._sampling_points, 4))
+
+        child_1_genes[0] = self._initial_angles
+        child_2_genes[0] = self._initial_angles
 
         for i in range(2, self._sampling_points + 1):
             w = 0.5 * (1 + np.tanh((i - mu) / std))
