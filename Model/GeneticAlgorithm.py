@@ -212,21 +212,27 @@ class GeneticAlgorithm:
         coinToss = np.random.rand(amount, amount)
         i = 0
         j = 0
-        while(i < amount):
-            while(j < amount):
+        while(True):
+            if i == amount  and j == amount -1:
+                i = 0
+                j = 0
+                coinToss = np.random.rand(amount, amount)
 
-                if coinToss[i,j] < self._pairing_prob and i != j:
-                    child1, child2 = self.crossover(self._parents[i], self._parents[j])
-                    self._children.append(child1)
-                    self._children.append(child2)
-                if len(self._children) == self._pop_size:
-                    return
-                i += 1
-                j += 1
-                if i == amount - 1 and j == amount -1:
-                    i=0
-                    j=0
-                    coinToss = np.random.rand(amount, amount)
+            if coinToss[i,j] < self._pairing_prob and i != j:
+                child1, child2 = self.crossover(self._parents[i], self._parents[j])
+                self._children.append(child1)
+                self._children.append(child2)
+            if len(self._children) == self._pop_size:
+                return
+            j += 1
+            if j == amount:
+                j = 0
+                i +=1
+            if i == amount:
+                j = 0
+                i = 0
+                coinToss = np.random.rand(amount, amount)
+
 
     def mutation(self):
 
@@ -304,9 +310,9 @@ class GeneticAlgorithm:
         axes = fig.add_subplot(111)
         cases = ['mejor caso', 'promedio']
         if choice == 0 or choice > len(cases):
-            plt.plot(self._best_case, label = cases[choice])
+            plt.plot(self._best_case, label = cases[0])
         if choice == 1 or choice > len(cases):
-            plt.plot(self._average_case, label = cases[choice])
+            plt.plot(self._average_case, label = cases[1])
 
         plt.xlabel('Generación', fontsize=10)
         plt.ylabel('Función de Fitness', fontsize=10)
