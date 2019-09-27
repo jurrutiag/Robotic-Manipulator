@@ -10,9 +10,7 @@ import pickle
 
 class GeneticAlgorithm:
 
-
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold = 50, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
-
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold = 400, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
 
         # Algorithm parameters
 
@@ -25,7 +23,7 @@ class GeneticAlgorithm:
         self._sampling_points = sampling_points # N_k
         self._initial_angles = [0, 0, 0, 0]
 
-        self._rate_of_selection = 0.2
+        self._rate_of_selection = 0.3
         self._safe_save = True
         self._save_filename = "gasafe.pickle"
 
@@ -41,7 +39,7 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=1)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=0)
 
         # Fitness Results
 
@@ -98,7 +96,6 @@ class GeneticAlgorithm:
 
             # Children are generated using crossover
             self.generateChildren()
-            print(len(self._children))
             # Children are mutated
             self.mutation()
 
@@ -314,9 +311,18 @@ class GeneticAlgorithm:
         if choice == 1 or choice >= len(cases):
             plt.plot(self._average_case, label = cases[1])
 
+        plt.legend(["Mejor Caso", "Promedio"])
         plt.xlabel('Generación', fontsize=10)
         plt.ylabel('Función de Fitness', fontsize=10)
-        plt.suptitle('Evolución del algoritmo genético')
+        plt.title('Evolución del algoritmo genético')
+        plt.show()
+
+        for ang in np.transpose(self._best_individual.getGenes()):
+            plt.plot(ang)
+        plt.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
+        plt.title("Mejor individuo")
+        plt.xlabel("Unidad de Tiempo")
+        plt.ylabel("Ángulo [rad]")
         plt.show()
 
     def printGenerationData(self):

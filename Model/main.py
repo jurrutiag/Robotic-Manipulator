@@ -10,12 +10,12 @@ if __name__ == "__main__":
 
     all = 1
 
-    desired_position = [0, 0, 20]
+    desired_position = [0, 0, 12.07]
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
     manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
-    GA = GeneticAlgorithm(desired_position, manipulator, sampling_points=50)
+    GA = GeneticAlgorithm(desired_position, manipulator, sampling_points=20)
 
     if all:
         GA.runAlgorithm()
@@ -39,3 +39,10 @@ if __name__ == "__main__":
 
         with open("gasafe.pickle", "rb") as f:
             ga = pickle.load(f)
+            ga.graph(2)
+            ind = ga.getBestIndividual()
+            plt.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
+            plt.title("Mejor individuo")
+            plt.xlabel("Unidad de Tiempo")
+            plt.ylabel("Ángulo [rad]")
+            plt.show()

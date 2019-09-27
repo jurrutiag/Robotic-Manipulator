@@ -67,3 +67,5 @@ class RoboticManipulator:
 
 if __name__ == "__main__":
     rb = RoboticManipulator((5, 5, 5, 5), (1, 1, 1))
+
+    print(rb.anglesToPositions(math.pi/4, math.pi/4, math.pi/4, math.pi/4))
