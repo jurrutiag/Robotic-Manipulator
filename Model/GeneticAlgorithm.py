@@ -10,7 +10,7 @@ import pickle
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.01, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
 
         # Algorithm parameters
 
@@ -22,7 +22,7 @@ class GeneticAlgorithm:
         self._pairing_prob = pairing_prob
         self._sampling_points = sampling_points # N_k
         self._initial_angles = [0, 0, 0, 0]
-        self._rate_of_selection = 0.3
+        self._rate_of_selection = 0.15
         self._safe_save = True
         self._save_filename = "gasafe.pickle"
 
@@ -79,7 +79,7 @@ class GeneticAlgorithm:
                     pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
                     print("| SAVED |")
 
-            self.plotBest()
+            #self.plotBest()
             self.printGenerationData()
 
             # Probabilities of selection for each individual is calculated
@@ -206,9 +206,10 @@ class GeneticAlgorithm:
     def generateChildren(self):
         amount = len(self._parents)
         coinToss = np.random.rand(amount, amount)
-
-        for i in range(amount):
-            for j in range(amount):
+        i = 0
+        j = 0
+        while(i < amount):
+            while(j < amount):
 
                 if coinToss[i,j] < self._pairing_prob and i != j:
                     child1, child2 = self.crossover(self._parents[i], self._parents[j])
@@ -216,10 +217,12 @@ class GeneticAlgorithm:
                     self._children.append(child2)
                 if len(self._children) == self._pop_size:
                     return
-
+                i += 1
+                j += 1
                 if i == amount - 1 and j == amount -1:
                     i=0
                     j=0
+                    coinToss = np.random.rand(amount, amount)
 
     def mutation(self):
 
