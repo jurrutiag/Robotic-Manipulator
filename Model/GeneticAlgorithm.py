@@ -209,24 +209,20 @@ class GeneticAlgorithm:
 
     def generateChildren(self):
         amount = len(self._parents)
-        coinToss = np.random.rand(amount, amount)
-        i = 0
-        j = 0
-        while(i < amount):
-            while(j < amount):
 
-                if coinToss[i,j] < self._pairing_prob and i != j:
-                    child1, child2 = self.crossover(self._parents[i], self._parents[j])
-                    self._children.append(child1)
-                    self._children.append(child2)
-                if len(self._children) == self._pop_size:
-                    return
-                i += 1
-                j += 1
-                if i == amount - 1 and j == amount -1:
-                    i=0
-                    j=0
-                    coinToss = np.random.rand(amount, amount)
+        while len(self._children) != self._pop_size:
+            coinToss = np.random.rand(amount, amount)
+
+            for i in range(amount):
+                for j in range(amount):
+                    if coinToss[i, j] < self._pairing_prob and i != j:
+                        child1, child2 = self.crossover(self._parents[i], self._parents[j])
+                        self._children.append(child1)
+                        self._children.append(child2)
+
+                    if len(self._children) == self._pop_size:
+                        return
+
 
     def mutation(self):
 
