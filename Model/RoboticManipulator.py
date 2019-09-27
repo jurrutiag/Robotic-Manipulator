@@ -30,7 +30,7 @@ class RoboticManipulator:
         """
 
         A3_XYprojection = self._L2 * math.cos(theta_2)
-        A3_height = self._L2 * math.sin(theta_2)
+        A3_height = self._L1 + self._L2 * math.sin(theta_2)
 
         A3_position = [
             A3_XYprojection * math.cos(theta_1),

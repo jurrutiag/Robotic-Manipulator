@@ -1,6 +1,6 @@
 import math
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import random
 import Individual
 import RoboticManipulator
@@ -324,6 +324,9 @@ class GeneticAlgorithm:
         plt.xlabel("Unidad de Tiempo")
         plt.ylabel("Ángulo [rad]")
         plt.show()
+
+        print(self._best_individual.getFinalAngle())
+        print(self._best_individual.getGenes())
 
     def printGenerationData(self):
         t = time.time() - self._start_time
