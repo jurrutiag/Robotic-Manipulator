@@ -70,7 +70,8 @@ class GeneticAlgorithm:
         self.getBestAndAverage()
 
         while True:
-            print([ind.getFitness() for ind in self._population])
+            # print([ind.getFitness() for ind in self._population])
+            self.plotBest()
             self.printGenerationData()
 
             # Probabilities of selection for each individual is calculated
@@ -295,6 +296,17 @@ class GeneticAlgorithm:
     def printGenerationData(self):
         t = time.time() - self._start_time
         print(f"| Generation: {self._generation}| Best Generation Fitness: {self._best_case[self._generation - 1]} | Mean Generation Fitness: {self._average_case[self._generation - 1]} | Best Overall Fitness: {max(self._best_case)} | Total time: {t} |")
+
+    def plotBest(self):
+        fit = 0
+        best = None
+        for ind in self._population:
+            if ind.getFitness() > fit:
+                fit = ind.getFitness()
+                best = ind
+        for ang in np.transpose(best.getGenes()):
+            plt.plot(ang)
+        plt.show()
 
     def getPopulation(self):
         return self._population
