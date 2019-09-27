@@ -9,7 +9,7 @@ import time
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.1, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.5, mut_individual_prob=0.01, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
 
         # Algorithm parameters
 
@@ -21,7 +21,7 @@ class GeneticAlgorithm:
         self._pairing_prob = pairing_prob
         self._sampling_points = sampling_points # N_k
         self._initial_angles = [0, 0, 0, 0]
-        self._rate_of_selection = 0.7
+        self._rate_of_selection = 0.3
 
         # Algorithm variables
 
@@ -35,7 +35,7 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=1)
 
         # Fitness Results
 
@@ -70,7 +70,8 @@ class GeneticAlgorithm:
         self.getBestAndAverage()
 
         while True:
-            print([ind.getFitness() for ind in self._population])
+            # print([ind.getFitness() for ind in self._population])
+            self.plotBest()
             self.printGenerationData()
 
             # Probabilities of selection for each individual is calculated
@@ -125,7 +126,7 @@ class GeneticAlgorithm:
                 R = abs(self._initial_angles[h] - finalAngles[ind][h])
 
                 P[0, h] = self._initial_angles[h]
-                for i in range(2, self._sampling_points + 1):
+                for i in range(2, self._sampling_points):
                     #no estoy seguro si habra que poner step distinto
                     A = (6 * R) * np.random.random() - 3 * R
                     noise = A * math.exp(-(i - average) ** 2 / (2 * std ** 2))
@@ -295,6 +296,17 @@ class GeneticAlgorithm:
     def printGenerationData(self):
         t = time.time() - self._start_time
         print(f"| Generation: {self._generation}| Best Generation Fitness: {self._best_case[self._generation - 1]} | Mean Generation Fitness: {self._average_case[self._generation - 1]} | Best Overall Fitness: {max(self._best_case)} | Total time: {t} |")
+
+    def plotBest(self):
+        fit = 0
+        best = None
+        for ind in self._population:
+            if ind.getFitness() > fit:
+                fit = ind.getFitness()
+                best = ind
+        for ang in np.transpose(best.getGenes()):
+            plt.plot(ang)
+        plt.show()
 
     def getPopulation(self):
         return self._population
