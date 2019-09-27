@@ -9,7 +9,7 @@ import time
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.2, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
 
         # Algorithm parameters
 
@@ -212,24 +212,29 @@ class GeneticAlgorithm:
                     j=0
 
     def mutation(self):
-        mu = (self._sampling_points - 1) * np.random.random() + 1
-        std = (self._sampling_points / 6 - 1) * np.random.random() + 1
+
 
         #se lanzan todas las monedas antes de iterar
         coin_toss_ind = np.random.rand(len(self._children))
         coin_toss_joint = np.random.rand(4, len(self._children))
 
         for ind in range(len(self._children)):
+
+            mu = (self._sampling_points - 1) * np.random.random() + 1
+            std = (self._sampling_points / 6 - 1) * np.random.random() + 1
+
             ind_mat = self._children[ind].getGenes()
             if self._mut_individual_prob < coin_toss_ind[ind]:
                 continue
 
+
             for h in range(4):
                 if self._mut_joint_prob < coin_toss_joint[h, ind]:
                     continue
-
+                low_limit = self._manipulator.getLimits()[h][0]
+                high_limit = self._manipulator.getLimits()[h][1]
                 ## Diferencia entre valores menores y mayores del hijo que se esta mutando.
-                R = np.max(ind_mat[:, h]) - np.min(ind_mat[:, h])
+                R = high_limit - low_limit
 
                 d = np.random.rand(self._sampling_points) * 2 * R - R
 
