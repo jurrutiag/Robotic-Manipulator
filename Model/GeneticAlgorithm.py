@@ -9,7 +9,7 @@ import time
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.2, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.5, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=50, torques_ponderations=(1, 1, 1, 1), generation_threshold = 200, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
 
         # Algorithm parameters
 
@@ -72,7 +72,7 @@ class GeneticAlgorithm:
 
         while True:
             # print([ind.getFitness() for ind in self._population])
-            self.plotBest()
+            #self.plotBest()
             self.printGenerationData()
 
             # Probabilities of selection for each individual is calculated
@@ -155,9 +155,9 @@ class GeneticAlgorithm:
                     maxAngle = angleLimits[h][1]
                     minAngle = angleLimits[h][0]
                     if ind_genes[i, h] > maxAngle:
-                        ind_genes[i, h] = maxAngle - (ind_genes[i,h]-maxAngle)
+                        ind_genes[i, h] = maxAngle #- (ind_genes[i,h]-maxAngle)
                     elif ind_genes[i, h] < minAngle:
-                        ind_genes[i, h] = minAngle + (minAngle - ind_genes[i,h])
+                        ind_genes[i, h] = minAngle #+ (minAngle - ind_genes[i,h])
 
     #probabilidades de la selección
     def probabilitiesOfSelection(self, fitness_values):
@@ -236,10 +236,10 @@ class GeneticAlgorithm:
                 ## Diferencia entre valores menores y mayores del hijo que se esta mutando.
                 R = high_limit - low_limit
 
-                d = np.random.rand(self._sampling_points) * 2 * R - R
+                d = np.random.random() * 2 * R - R
 
                 for i in range(2, self._sampling_points + 1):
-                    ind_mat[i - 1, h] = ind_mat[i - 1, h] + d[i - 1] * math.exp((- (i - mu) ** 2) / (2 * std ** 2))
+                    ind_mat[i - 1, h] = ind_mat[i - 1, h] + d * math.exp((- (i - mu) ** 2) / (2 * std ** 2))
 
             self._children[ind].setGenes(ind_mat)
 
