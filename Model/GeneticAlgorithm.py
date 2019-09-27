@@ -185,11 +185,11 @@ class GeneticAlgorithm:
         child_1_genes = np.zeros((self._sampling_points, 4))
         child_2_genes = np.zeros((self._sampling_points, 4))
 
-        for i in range(self._sampling_points):
+        for i in range(2, self._sampling_points + 1):
             w = 0.5 * (1 + np.tanh((i - mu) / std))
             for h in range(4):
-                child_1_genes[i, h] = w * gene_1[i, h] + (1 - w) * gene_2[i, h]
-                child_2_genes[i, h] = (1 - w) * gene_1[i, h] + w * gene_2[i, h]
+                child_1_genes[i - 1, h] = w * gene_1[i - 1, h] + (1 - w) * gene_2[i - 1, h]
+                child_2_genes[i - 1, h] = (1 - w) * gene_1[i - 1, h] + w * gene_2[i - 1, h]
 
         return Individual.Individual(child_1_genes), Individual.Individual(child_2_genes)
 
@@ -233,8 +233,8 @@ class GeneticAlgorithm:
 
                 d = np.random.rand(self._sampling_points) * 2 * R - R
 
-                for i in range(self._sampling_points):
-                    ind_mat[i, h] = ind_mat[i, h] + d[i] * math.exp((- (i - mu) ** 2) / (2 * std ** 2))
+                for i in range(2, self._sampling_points + 1):
+                    ind_mat[i - 1, h] = ind_mat[i - 1, h] + d[i - 1] * math.exp((- (i - mu) ** 2) / (2 * std ** 2))
 
             self._children[ind].setGenes(ind_mat)
 
