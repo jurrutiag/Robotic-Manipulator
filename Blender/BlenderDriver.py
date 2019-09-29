@@ -112,7 +112,7 @@ if __name__ == "__main__":
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
-    with open("D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/best_individuals.json") as f:
+    with open("D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/JSON files/best_individuals.json") as f:
         best_individuals = json.load(f)
         for ind in best_individuals["Best Individuals"]:
             if ind["Animate"]:

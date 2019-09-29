@@ -10,11 +10,11 @@ import pickle
 
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6,
+    def __init__(self, manipulator, desired_position, pop_size=100, cross_individual_prob=0.6,
                  mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
                  sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=3000,
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
-                 torques_error_ponderation=0.01, distance_error_ponderation=1):
+                 torques_error_ponderation=0.01, distance_error_ponderation=1, generation_for_print=10, safe_save=True):
 
         # Algorithm parameters
 
@@ -28,9 +28,9 @@ class GeneticAlgorithm:
         self._initial_angles = [0, 0, 0, 0]
 
         self._rate_of_selection = 0.3
-        self._safe_save = True
+        self._safe_save = safe_save
         self._save_filename = "gasafe.pickle"
-        self._generation_for_print = 10
+        self._generation_for_print = generation_for_print
         self._plot_best = False
         self._exponential_initialization = False
 
@@ -73,12 +73,7 @@ class GeneticAlgorithm:
 
         # Algorithm info for save
 
-        self._all_info = [pop_size, cross_individual_prob,
-                          mut_individual_prob, cross_joint_prob, mut_joint_prob, pairing_prob,
-                          sampling_points, torques_ponderations, generation_threshold,
-                          fitness_threshold, progress_threshold, generations_progress_threshold,
-                          torques_error_ponderation, distance_error_ponderation, manipulator.getDimensions(),
-                          manipulator.getMass(), manipulator.getLimits()]
+        self._all_info = locals()
 
     def runAlgorithm(self):
 
