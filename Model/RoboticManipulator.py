@@ -5,13 +5,8 @@ class RoboticManipulator:
 
     def __init__(self, dimensions, mass, angle_limits=([-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2])):
 
-        self._L1 = dimensions[0]
-        self._L2 = dimensions[1]
-        self._L3 = dimensions[2]
-        self._L4 = dimensions[3]
-
+        self._dimensions = dimensions
         self._mass = mass
-
         self._angle_limits = angle_limits
 
     def anglesToPositions(self, theta_1, theta_2, theta_3, theta_4):
@@ -29,8 +24,13 @@ class RoboticManipulator:
         :rtype: None
         """
 
-        A3_XYprojection = self._L2 * math.cos(theta_2)
-        A3_height = self._L1 + self._L2 * math.sin(theta_2)
+        L1 = self._dimensions[0]
+        L2 = self._dimensions[1]
+        L3 = self._dimensions[2]
+        L4= self._dimensions[3]
+
+        A3_XYprojection = L2 * math.cos(theta_2)
+        A3_height = L1 + L2 * math.sin(theta_2)
 
         A3_position = [
             A3_XYprojection * math.cos(theta_1),
@@ -38,8 +38,8 @@ class RoboticManipulator:
             A3_height
         ]
 
-        A4_XYprojection = A3_XYprojection + self._L3 * math.cos(theta_2 + theta_3)
-        A4_height = A3_height + self._L3 * math.sin(theta_2 + theta_3)
+        A4_XYprojection = A3_XYprojection + L3 * math.cos(theta_2 + theta_3)
+        A4_height = A3_height + L3 * math.sin(theta_2 + theta_3)
 
         A4_position = [
             A4_XYprojection * math.cos(theta_1),
@@ -47,9 +47,9 @@ class RoboticManipulator:
             A4_height
         ]
 
-        end_effector_XYprojection = A4_XYprojection + self._L4 * math.cos(
+        end_effector_XYprojection = A4_XYprojection + L4* math.cos(
             theta_4 + theta_3 + theta_2)
-        end_effector_height = A4_height + self._L4 * math.sin(theta_2 + theta_3 + theta_4)
+        end_effector_height = A4_height + L4* math.sin(theta_2 + theta_3 + theta_4)
 
         end_effector_position = [
             end_effector_XYprojection * math.cos(theta_1),
@@ -62,10 +62,13 @@ class RoboticManipulator:
     def getMass(self):
         return self._mass
 
+    def getDimensions(self):
+        return self._dimensions
+
     def getLimits(self):
         return self._angle_limits
 
 if __name__ == "__main__":
     rb = RoboticManipulator((5, 5, 5, 5), (1, 1, 1))
 
-    print(rb.anglesToPositions(math.pi/4, math.pi/4, math.pi/4, math.pi/4))
+    print(rb.anglesToPositions(0.84260399, -1.1828686, 1.09675171, 1.41007504))

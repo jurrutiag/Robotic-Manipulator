@@ -1,16 +1,20 @@
 import math
 import numpy as np
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import random
 import Individual
-import RoboticManipulator
 import FitnessFunction
 import time
 import pickle
 
+
 class GeneticAlgorithm:
 
-    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6, mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5, sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold = 400, fitness_threshold = 1, progress_threshold = 1, generations_progress_threshold = 50):
+    def __init__(self, desired_position, manipulator, pop_size=100, cross_individual_prob=0.6,
+                 mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
+                 sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=3000,
+                 fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
+                 torques_error_ponderation=0.01, distance_error_ponderation=1):
 
         # Algorithm parameters
 
@@ -26,6 +30,9 @@ class GeneticAlgorithm:
         self._rate_of_selection = 0.3
         self._safe_save = True
         self._save_filename = "gasafe.pickle"
+        self._generation_for_print = 10
+        self._plot_best = False
+        self._exponential_initialization = False
 
         # Algorithm variables
 
@@ -39,7 +46,9 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations, desired_position, torques_error_ponderation=0)
+        self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations,
+                                                                 desired_position, distance_error_ponderation=distance_error_ponderation,
+                                                                 torques_error_ponderation=torques_error_ponderation)
 
         # Fitness Results
 
@@ -62,6 +71,15 @@ class GeneticAlgorithm:
 
         self._best_individual = None
 
+        # Algorithm info for save
+
+        self._all_info = [pop_size, cross_individual_prob,
+                          mut_individual_prob, cross_joint_prob, mut_joint_prob, pairing_prob,
+                          sampling_points, torques_ponderations, generation_threshold,
+                          fitness_threshold, progress_threshold, generations_progress_threshold,
+                          torques_error_ponderation, distance_error_ponderation, manipulator.getDimensions(),
+                          manipulator.getMass(), manipulator.getLimits()]
+
     def runAlgorithm(self):
 
         self._start_time = time.time()
@@ -81,9 +99,6 @@ class GeneticAlgorithm:
                     pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
                     print("| SAVED |")
 
-            #self.plotBest()
-            self.printGenerationData()
-
             # Probabilities of selection for each individual is calculated
             fitness_values = []
             for individual in self._population:
@@ -96,6 +111,7 @@ class GeneticAlgorithm:
 
             # Children are generated using crossover
             self.generateChildren()
+
             # Children are mutated
             self.mutation()
 
@@ -112,8 +128,18 @@ class GeneticAlgorithm:
             # Check for termination condition
             if self.terminationCondition():
                 self.findBestIndividual()
+                if self._plot_best:
+                    self.plotBest()
+                self.printGenerationData()
                 self.graph(2)
+                print(self._best_individual.getGenes())
                 return
+
+            # Information is printed
+            if self._generation % self._generation_for_print == 0:
+                if self._plot_best:
+                    self.plotBest()
+                self.printGenerationData()
 
     def initialization(self):
 
@@ -123,57 +149,57 @@ class GeneticAlgorithm:
 
         for ind in range(self._pop_size):
             P = np.zeros((self._sampling_points, 4))
-            # finalAngles = np.pi * np.random.random(size=4) - np.pi/2
 
             for h in range(4):
-                #solo el extremo inicial esta fijo
+                # Solo el extremo inicial esta fijo
                 average = (self._sampling_points - 2) * np.random.random() + 2
-                # average = random.randrange(2, self._sampling_points)
                 std = (self._sampling_points / 6 - 1) * np.random.random() + 1
-                # std = random.randrange(1,self._sampling_points/6)
-                R = abs(self._initial_angles[h] - finalAngles[ind][h])
 
                 P[0, h] = self._initial_angles[h]
-                for i in range(2, self._sampling_points + 1):
-                    #no estoy seguro si habra que poner step distinto
-                    # A = (6 * R) * np.random.random() - 3 * R
-                    # noise = A * math.exp(-(i - average) ** 2 / (2 * std ** 2))
-                    # P[i - 1,h] = self._initial_angles[h] + (i - 1) * (finalAngles[ind][h] - self._initial_angles[h])/(self._sampling_points-1) + noise
-                    P[i - 1, h] = self._initial_angles[h] + (finalAngles[ind][h] - self._initial_angles[h]) * 0.5 * (1 + np.tanh((i - average) / std))
 
+                if self._exponential_initialization:
+                    R = abs(self._initial_angles[h] - finalAngles[ind][h])
+                    for i in range(2, self._sampling_points + 1):
+                        A = (6 * R) * np.random.random() - 3 * R
+                        noise = A * math.exp(-(i - average) ** 2 / (2 * std ** 2))
+                        P[i - 1, h] = self._initial_angles[h] + (i - 1) * (finalAngles[ind][h] - self._initial_angles[h]) / (self._sampling_points - 1) + noise
+
+                else:
+                    for i in range(2, self._sampling_points + 1):
+                        P[i - 1, h] = self._initial_angles[h] + (finalAngles[ind][h] - self._initial_angles[h]) * 0.5 * (1 + np.tanh((i - average) / std))
 
             results.append(Individual.Individual(P))
 
-
-        #lista de individuos
         self._generation = 1
         self._population = results
 
     def evaluateFitness(self, population):
-
         for individual in population:
             self._fitness_function.evaluateFitness(individual)
 
     def angleCorrection(self):
-        angleLimits = self._manipulator.getLimits()
+        angle_limits = self._manipulator.getLimits()
+
         for ind in self._population:
             ind_genes = ind.getGenes()
+
             for i in range(ind_genes.shape[0]):
                 for h in range(ind_genes.shape[1]):
-                    maxAngle = angleLimits[h][1]
-                    minAngle = angleLimits[h][0]
-                    if ind_genes[i, h] > maxAngle:
-                        ind_genes[i, h] = maxAngle #- (ind_genes[i,h]-maxAngle)
-                    elif ind_genes[i, h] < minAngle:
-                        ind_genes[i, h] = minAngle #+ (minAngle - ind_genes[i,h])
+                    maxAngle = angle_limits[h][1]
+                    minAngle = angle_limits[h][0]
 
-    #probabilidades de la selección
+                    if ind_genes[i, h] > maxAngle:
+                        ind_genes[i, h] = maxAngle  # - (ind_genes[i, h] - maxAngle)
+
+                    elif ind_genes[i, h] < minAngle:
+                        ind_genes[i, h] = minAngle  # + (minAngle - ind_genes[i,h])
+
     def probabilitiesOfSelection(self, fitness_values):
         total = sum(fitness_values)
         probabilities = []
 
         for fitness in fitness_values:
-            probabilities.append(fitness/total)
+            probabilities.append(fitness / total)
 
         return probabilities
 
@@ -233,7 +259,7 @@ class GeneticAlgorithm:
 
     def mutation(self):
 
-        #se lanzan todas las monedas antes de iterar
+        # Se lanzan todas las monedas antes de iterar
         coin_toss_ind = np.random.rand(len(self._children))
         coin_toss_joint = np.random.rand(4, len(self._children))
 
@@ -277,8 +303,6 @@ class GeneticAlgorithm:
 
         return generationLimitCondition or bestIndividualCondition or progressCondition
 
-
-
     def findBestIndividual(self):
         fit = 0
         for individual in self._population:
@@ -288,7 +312,6 @@ class GeneticAlgorithm:
 
     def getFitnessFunction(self):
         return self._fitness_function
-
 
     def getBestAndAverage(self):
         max_fitness = 0
@@ -325,12 +348,15 @@ class GeneticAlgorithm:
         plt.ylabel("Ángulo [rad]")
         plt.show()
 
-        print(self._best_individual.getFinalAngle())
-        print(self._best_individual.getGenes())
-
     def printGenerationData(self):
         t = time.time() - self._start_time
-        print(f"| Generation: {self._generation}| Best Generation Fitness: {self._best_case[self._generation - 1]} | Mean Generation Fitness: {self._average_case[self._generation - 1]} | Best Overall Fitness: {max(self._best_case)} | Total time: {t} |")
+
+        print("| Generation:                    %.4d |\n" % (self._generation) +
+              "| Best Generation Fitness: %.8f |\n" % (self._best_case[self._generation - 1]) +
+              "| Mean Generation Fitness: %.8f |\n" % (self._average_case[self._generation - 1]) +
+              "| Best Overall Fitness:    %.8f |\n" % (max(self._best_case)) +
+              "| Total time:                  %6.2f |\n" % (t) +
+              "- - - - - - - - - - - - - - - - - - - -")
 
     def plotBest(self):
         fit = 0
@@ -342,6 +368,9 @@ class GeneticAlgorithm:
         for ang in np.transpose(best.getGenes()):
             plt.plot(ang)
         plt.show()
+
+    def getAlgorithmInfo(self):
+        return self._all_info
 
     def getPopulation(self):
         return self._population
