@@ -14,7 +14,8 @@ class GeneticAlgorithm:
                  mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
                  sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=3000,
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
-                 torques_error_ponderation=0.01, distance_error_ponderation=1, generation_for_print=10, safe_save=True):
+                 torques_error_ponderation=0.01, distance_error_ponderation=1, generation_for_print=10, safe_save=True,
+                 plot_fitness=True, plot_best=False, exponential_initialization=False):
 
         # Algorithm parameters
 
@@ -31,8 +32,9 @@ class GeneticAlgorithm:
         self._safe_save = safe_save
         self._save_filename = "gasafe.pickle"
         self._generation_for_print = generation_for_print
-        self._plot_best = False
-        self._exponential_initialization = False
+        self._plot_best = plot_best
+        self._plot_fitness = plot_fitness
+        self._exponential_initialization = exponential_initialization
 
         # Algorithm variables
 
@@ -70,10 +72,13 @@ class GeneticAlgorithm:
         # Final Results
 
         self._best_individual = None
+        self._graphs = None
 
         # Algorithm info for save
 
-        self._all_info = locals()
+        self._all_info = locals().copy()
+        del self._all_info["manipulator"]
+        del self._all_info["self"]
 
     def runAlgorithm(self):
 
@@ -126,12 +131,12 @@ class GeneticAlgorithm:
                 if self._plot_best:
                     self.plotBest()
                 self.printGenerationData()
-                self.graph(2)
-                print(self._best_individual.getGenes())
+                if self._plot_fitness:
+                    self.graph(2)
                 return
 
             # Information is printed
-            if self._generation % self._generation_for_print == 0:
+            if self._generation_for_print and self._generation % self._generation_for_print == 0:
                 if self._plot_best:
                     self.plotBest()
                 self.printGenerationData()
@@ -251,7 +256,6 @@ class GeneticAlgorithm:
                 i = 0
                 coinToss = np.random.rand(amount, amount)
 
-
     def mutation(self):
 
         # Se lanzan todas las monedas antes de iterar
@@ -321,35 +325,37 @@ class GeneticAlgorithm:
         self._average_case.append(mean_fitness)
 
     def graph(self, choice):
-        fig = plt.figure()
-        axes = fig.add_subplot(111)
+        fig_fitness, ax_fitness = plt.subplots(ncols=1, nrows=1)
         cases = ['mejor caso', 'promedio']
         if choice == 0 or choice >= len(cases):
-            plt.plot(self._best_case, label = cases[0])
+            ax_fitness.plot(self._best_case, label=cases[0])
         if choice == 1 or choice >= len(cases):
-            plt.plot(self._average_case, label = cases[1])
+            ax_fitness.plot(self._average_case, label=cases[1])
 
-        plt.legend(["Mejor Caso", "Promedio"])
-        plt.xlabel('Generación', fontsize=10)
-        plt.ylabel('Función de Fitness', fontsize=10)
-        plt.title('Evolución del algoritmo genético')
-        plt.show()
+        ax_fitness.legend(["Mejor Caso", "Promedio"])
+        ax_fitness.set_xlabel('Generación', fontsize=10)
+        ax_fitness.set_ylabel('Función de Fitness', fontsize=10)
+        ax_fitness.set_title('Evolución del algoritmo genético')
+
+        fig_best_individual, ax_best_individual = plt.subplots(ncols=1, nrows=1)
 
         for ang in np.transpose(self._best_individual.getGenes()):
-            plt.plot(ang)
-        plt.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
-        plt.title("Mejor individuo")
-        plt.xlabel("Unidad de Tiempo")
-        plt.ylabel("Ángulo [rad]")
-        plt.show()
+            ax_best_individual.plot(ang)
+
+        ax_best_individual.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
+        ax_best_individual.set_title("Mejor individuo")
+        ax_best_individual.set_xlabel("Unidad de Tiempo")
+        ax_best_individual.set_ylabel("Ángulo [rad]")
+
+        self._graphs = fig_fitness, fig_best_individual
 
     def printGenerationData(self):
         t = time.time() - self._start_time
 
-        print("| Generation:                    %.4d |\n" % (self._generation) +
-              "| Best Generation Fitness: %.8f |\n" % (self._best_case[self._generation - 1]) +
-              "| Mean Generation Fitness: %.8f |\n" % (self._average_case[self._generation - 1]) +
-              "| Best Overall Fitness:    %.8f |\n" % (max(self._best_case)) +
+        print("| Generation:                    %4.4d |\n" % (self._generation) +
+              "| Best Generation Fitness: %10.8f |\n" % (self._best_case[self._generation - 1]) +
+              "| Mean Generation Fitness: %10.8f |\n" % (self._average_case[self._generation - 1]) +
+              "| Best Overall Fitness:    %10.8f |\n" % (max(self._best_case)) +
               "| Total time:                  %6.2f |\n" % (t) +
               "- - - - - - - - - - - - - - - - - - - -")
 
@@ -381,3 +387,6 @@ class GeneticAlgorithm:
 
     def getAverageCase(self):
         return self._average_case
+
+    def getGraphs(self):
+        return self._graphs
