@@ -2,9 +2,10 @@
 
 class Individual:
 
-    def __init__(self, genes):
+    def __init__(self, genes, id=0):
         self._genes = genes
         self._fitness = None
+        self._id = id
 
     def getGenes(self):
         return self._genes
@@ -23,3 +24,9 @@ class Individual:
 
     def getFinalAngle(self):
         return self._genes[-1]
+
+    def setId(self, id):
+        self._id = id
+
+    def getId(self):
+        return self._id

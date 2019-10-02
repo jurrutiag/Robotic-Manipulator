@@ -6,6 +6,7 @@ import Individual
 import FitnessFunction
 import time
 import pickle
+import multiprocessing
 
 
 class GeneticAlgorithm:
@@ -79,6 +80,7 @@ class GeneticAlgorithm:
         self._all_info = locals().copy()
         del self._all_info["manipulator"]
         del self._all_info["self"]
+
 
     def runAlgorithm(self):
 

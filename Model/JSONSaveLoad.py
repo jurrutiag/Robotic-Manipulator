@@ -2,6 +2,7 @@ import json
 import datetime
 import itertools
 import os
+import matplotlib.pyplot as plt
 
 
 class JSONSaveLoad:
@@ -60,8 +61,6 @@ class JSONSaveLoad:
 
         new_individual = {}
 
-
-
         with open(self._trained_models_dir + "/" + self._save_filename + ".json") as f:
             individuals_json = json.load(f)
             index = individuals_json["Index"]
@@ -69,6 +68,8 @@ class JSONSaveLoad:
             graphs = GA.getGraphs()
             graphs[0].savefig(self._trained_models_dir + "/Graphs/fitness_graph_" + str(index))
             graphs[1].savefig(self._trained_models_dir + "/Graphs/best_individual_graph_" + str(index))
+
+            plt.close('all')
 
             best_individuals = individuals_json["Best Individuals"]
             new_individual["ID"] = index

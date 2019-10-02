@@ -19,11 +19,11 @@
       1,
       1
     ],
-    "generation_threshold": 1000,
+    "generation_threshold": 30,
     "fitness_threshold": 0.8,
     "progress_threshold": 1,
     "generations_progress_threshold": 50,
-    "torques_error_ponderation": 0.01,
+    "torques_error_ponderation": 0,
     "distance_error_ponderation": 1,
     "generation_for_print": false,
     "safe_save": false,
