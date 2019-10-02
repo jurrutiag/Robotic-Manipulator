@@ -7,11 +7,10 @@ import matplotlib.pyplot as plt
 
 class JSONSaveLoad:
 
-    def __init__(self, parameters_from_filename, parameters_visualization_filename, quick_save_filename, save_filename, parameters_variations={}):
+    def __init__(self, parameters_from_filename, quick_save_filename, save_filename, parameters_variations={}):
 
         # Filenames
         self._parameters_from_filename = parameters_from_filename
-        self._parameters_visualization_filename = parameters_visualization_filename
         self._quick_save_filename = quick_save_filename
         self._save_filename = save_filename
         self._trained_models_dir = "Trained Models/" + self._save_filename
@@ -47,10 +46,6 @@ class JSONSaveLoad:
                 parameters["Runs"] = runs
 
             self._parameters = parameters
-
-    def parametersToJSON(self):
-        with open(self._parameters_visualization_filename, 'w') as f:
-            json.dump(self._parameters, f)
 
     def getRuns(self):
         return self._parameters["Runs"]

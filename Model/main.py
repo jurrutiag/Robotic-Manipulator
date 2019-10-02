@@ -1,26 +1,4 @@
 
-def saveJson(jsonfilename, genetic_algorithm):
-
-    new_individual = {}
-
-    with open(jsonfilename) as f:
-        individuals_json = json.load(f)
-        best_individuals = individuals_json["Best Individuals"]
-        new_individual["Genes"] = genetic_algorithm.getBestIndividual().getGenes().tolist()
-        new_individual["Info"] = genetic_algorithm.getAlgorithmInfo()
-        new_individual["Time of Training"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        new_individual["Fitness"] = genetic_algorithm.getBestIndividual().getFitness()
-        new_individual["Animate"] = False
-        best_individuals.append(new_individual)
-
-    with open(jsonfilename, 'w') as f:
-        json.dump(individuals_json, f)
-
-
-def geneticWrapper(func, manipulator, kwargs):
-    return func(manipulator, **kwargs)
-
-
 
 if __name__ == "__main__":
     from GeneticAlgorithm import GeneticAlgorithm
@@ -28,11 +6,10 @@ if __name__ == "__main__":
     import numpy as np
     import pickle
     import matplotlib.pyplot as plt
-    import json
-    import datetime
-    import itertools
     from JSONSaveLoad import JSONSaveLoad
     from MultiCoreExecuter import MultiCoreExecuter
+
+    ## Configurations
 
     # np.random.seed(0) # for testing
 
@@ -42,22 +19,7 @@ if __name__ == "__main__":
     # True if you want to load the parameters from a JSON file
     from_file = True
 
-    # If true, this will empty the runs parameters file
-    empty_runs_file = False
-
-    # Filename for pickle file, this is to save the last GA object
-    savefilename = "finalga.pickle"
-
-    # Cores for multiprocessing
-    cores = 1
-
-    desired_position = [5, 5, 5]
-    manipulator_dimensions = [5, 5, 5, 5]
-    manipulator_mass = [1, 1, 1]
-
-    manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
-    GA = GeneticAlgorithm(manipulator, desired_position, sampling_points=20)
-
+    # Parameters to change on the json
     parameters_variations = {
         "torques_error_ponderation": [0],
         "pop_size": [100, 200],
@@ -68,11 +30,34 @@ if __name__ == "__main__":
         "sampling_points": [20, 30]
     }
 
+    # Name of the set of parameters to run
+    run_name = "json_test"
 
-    save_load_json = JSONSaveLoad(parameters_from_filename="JSON files/runs_parameters.json",
-                                  parameters_visualization_filename="JSON files/parameters_visualization.json",
-                                  quick_save_filename="JSON files/quick_models.json",
-                                  save_filename="json_test", parameters_variations=parameters_variations)
+    # Filename for pickle file, this is to save the last GA object
+    savefilename = "finalga.pickle"
+
+    # Cores for multiprocessing
+    cores = 4
+
+    # Manipulator parameters
+    desired_position = [5, 5, 5]
+    manipulator_dimensions = [5, 5, 5, 5]
+    manipulator_mass = [1, 1, 1]
+
+    # Permanent Configurations
+    json_config_folder = "JSON files"
+    prev_parameters_dir = json_config_folder + "/runs_parameters.json"
+    quick_models_dir = json_config_folder + "/quick_models.json"
+
+    ## Execution
+
+    manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
+    GA = GeneticAlgorithm(manipulator, desired_position, sampling_points=20)
+
+    save_load_json = JSONSaveLoad(parameters_from_filename=prev_parameters_dir,
+                                  quick_save_filename=quick_models_dir,
+                                  save_filename="json_test",
+                                  parameters_variations=parameters_variations)
 
     if all:
         if from_file:
