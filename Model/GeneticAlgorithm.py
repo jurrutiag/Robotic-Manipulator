@@ -237,7 +237,7 @@ class GeneticAlgorithm:
         coinToss = np.random.rand(amount, amount)
         i = 0
         j = 0
-        while(True):
+        while len(self._children) != self._pop_size:
             if i == amount  and j == amount -1:
                 i = 0
                 j = 0
@@ -247,8 +247,6 @@ class GeneticAlgorithm:
                 child1, child2 = self.crossover(self._parents[i], self._parents[j])
                 self._children.append(child1)
                 self._children.append(child2)
-            if len(self._children) == self._pop_size:
-                return
             j += 1
             if j == amount:
                 j = 0
