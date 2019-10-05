@@ -108,11 +108,13 @@ if __name__ == "__main__":
 
     # np.random.seed(0)  # for testing
 
-    desired_position = [3, 3, 3]
+    desired_position = [5, 5, 5]
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
-    with open("D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/JSON files/best_individuals.json") as f:
+    models_batch_name = "128_runs_4_cores_torque_and_no_torque"
+
+    with open("D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json") as f:
         best_individuals = json.load(f)
         for ind in best_individuals["Best Individuals"]:
             if ind["Animate"]:

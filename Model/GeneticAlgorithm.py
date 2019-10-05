@@ -11,7 +11,7 @@ import multiprocessing
 
 class GeneticAlgorithm:
 
-    def __init__(self, manipulator, desired_position, pop_size=100, cross_individual_prob=0.6,
+    def __init__(self, print_module, manipulator, desired_position, pop_size=100, cross_individual_prob=0.6,
                  mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
                  sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=3000,
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
@@ -78,8 +78,13 @@ class GeneticAlgorithm:
         # Algorithm info for save
 
         self._all_info = locals().copy()
+        del self._all_info["print_module"]
         del self._all_info["manipulator"]
         del self._all_info["self"]
+
+        # Prints
+
+        self._print_module = print_module
 
 
     def runAlgorithm(self):
@@ -352,12 +357,12 @@ class GeneticAlgorithm:
     def printGenerationData(self):
         t = time.time() - self._start_time
 
-        print("| Generation:                    %4.4d |\n" % (self._generation) +
+        self._print_module.print("| Generation:                    %4.4d |\n" % (self._generation) +
               "| Best Generation Fitness: %10.8f |\n" % (self._best_case[self._generation - 1]) +
               "| Mean Generation Fitness: %10.8f |\n" % (self._average_case[self._generation - 1]) +
               "| Best Overall Fitness:    %10.8f |\n" % (max(self._best_case)) +
               "| Total time:                  %6.2f |\n" % (t) +
-              "- - - - - - - - - - - - - - - - - - - -")
+              "- - - - - - - - - - - - - - - - - - - -", self._print_module.getPosition() + 1)
 
     def plotBest(self):
         fit = 0

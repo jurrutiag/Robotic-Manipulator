@@ -20,14 +20,21 @@ if __name__ == "__main__":
     from_file = True
 
     # Parameters to change on the json
+    # parameters_variations = {
+    #     "torques_error_ponderation": [0],
+    #     "generation_threshold": [30],
+    #     "pop_size": [100, 150],
+    #     "cross_individual_prob": [0.5, 0.6, 0.7, 0.8],
+    #     "mut_individual_prob": [0.01, 0.05],
+    #     "cross_joint_prob": [0.25, 0.5],
+    #     "mut_joint_prob": [0.25, 0.5],
+    #     "sampling_points": [20]
+    # }
+
     parameters_variations = {
         "torques_error_ponderation": [0],
-        "pop_size": [100, 200],
-        "cross_individual_prob": [0.5, 0.6, 0.7, 0.8],
-        "mut_individual_prob": [0.01, 0.05],
-        "cross_joint_prob": [0.25, 0.5],
-        "mut_joint_prob": [0.25, 0.5],
-        "sampling_points": [20, 30]
+        "generation_threshold": [30, 40],
+        "cross_individual_prob": [0.2, 0.3, 0.4, 0.5]
     }
 
     # Name of the set of parameters to run
@@ -52,11 +59,10 @@ if __name__ == "__main__":
     ## Execution
 
     manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
-    GA = GeneticAlgorithm(manipulator, desired_position, sampling_points=20)
 
     save_load_json = JSONSaveLoad(parameters_from_filename=prev_parameters_dir,
                                   quick_save_filename=quick_models_dir,
-                                  save_filename="json_test",
+                                  save_filename=run_name,
                                   parameters_variations=parameters_variations)
 
     if all:
