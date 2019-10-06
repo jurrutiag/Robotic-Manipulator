@@ -6,6 +6,12 @@ The robotic manipulator will be modeled using the Denavit-Hartenberg convention 
 
 This project is developed in the context of the subject EL4106 - Inteligencia Computacional from Universidad de Chile. 
 
+# How to use
+The Model folder contains 'main.py', the file that can run the algorithm importing the relevant parts.
+
+'RoboticManipulator.py' contains the logic of the manipulator itself, 'FitnessFunction.py' contains the logic of the fitnes function used, and 'GeneticAlgorithm.py' features the algorithm itself, using individuals modeled with the Individual class contained in 'Individual.py'.
+
+
 ## Authors
 * Javier Mosnaim
 * Juan Urrutia
