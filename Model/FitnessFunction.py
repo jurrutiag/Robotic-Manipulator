@@ -2,6 +2,7 @@ import RoboticManipulator
 import numpy as np
 import math
 
+# TODO: fix inertias calculation
 class FitnessFunction:
 
     def __init__(self, manipulator, torques_ponderations, desired_position, distance_error_ponderation=1, torques_error_ponderation=1):

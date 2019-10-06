@@ -33,8 +33,8 @@ if __name__ == "__main__":
 
     parameters_variations = {
         "torques_error_ponderation": [0],
-        "generation_threshold": [30, 40],
-        "cross_individual_prob": [0.2, 0.3, 0.4, 0.5]
+        "generation_threshold": [30, 40, 50, 60],
+        "cores": [1]
     }
 
     # Name of the set of parameters to run

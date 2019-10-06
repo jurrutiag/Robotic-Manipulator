@@ -6,12 +6,14 @@ import Individual
 import FitnessFunction
 import time
 import pickle
+from PrintModule import PrintModule
 import multiprocessing
+import psutil
 
 
 class GeneticAlgorithm:
 
-    def __init__(self, print_module, manipulator, desired_position, pop_size=100, cross_individual_prob=0.6,
+    def __init__(self, manipulator, desired_position, print_module=None, cores=1, pop_size=100, cross_individual_prob=0.6,
                  mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
                  sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=3000,
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
@@ -66,9 +68,16 @@ class GeneticAlgorithm:
         self._progress_threshold = progress_threshold
         self._generations_progress_threshold = generations_progress_threshold
 
-        # Algorithm timing
+        # Algorithm timing, resource measure and prints
 
+        self._print_module = print_module if print_module is not None else PrintModule()
+        cpu_values = []
+        for _ in range(50):
+            cpu_values.append(psutil.cpu_percent())
+            time.sleep(0.1)
+        self._mean_previous_cpu = np.mean(cpu_values)
         self._start_time = 0
+        self._total_training_time = -1
 
         # Final Results
 
@@ -82,10 +91,21 @@ class GeneticAlgorithm:
         del self._all_info["manipulator"]
         del self._all_info["self"]
 
-        # Prints
+        # MultiCore algorithm
 
-        self._print_module = print_module
+        self._cores = cores
+        self._in_queue = None
+        self._out_queue = None
+        if self._cores > 1:
 
+            self._processes = []
+            self._in_queue = multiprocessing.Queue()
+            self._out_queue = multiprocessing.Queue()
+
+            for i in range(cores - 1):
+                p = multiprocessing.Process(target=self.multiCoreFitness, args=(self._in_queue, self._out_queue))
+                self._processes.append(p)
+                p.start()
 
     def runAlgorithm(self):
 
@@ -95,7 +115,7 @@ class GeneticAlgorithm:
         self.initialization()
 
         # First generation fitness
-        self.evaluateFitness(self._population)
+        self._population = self.evaluateFitness(self._population)
         self.getBestAndAverage()
 
         while True:
@@ -123,7 +143,7 @@ class GeneticAlgorithm:
             self.mutation()
 
             # Children are evaluated
-            self.evaluateFitness(self._children)
+            self._children = self.evaluateFitness(self._children)
 
             # Parents are replaced by children
             self.replacement()
@@ -134,12 +154,15 @@ class GeneticAlgorithm:
 
             # Check for termination condition
             if self.terminationCondition():
+                self._total_training_time = time.time() - self._start_time
                 self.findBestIndividual()
                 if self._plot_best:
                     self.plotBest()
                 self.printGenerationData()
                 if self._plot_fitness:
                     self.graph(2)
+                if self._cores > 1:
+                    self.buryProcesses()
                 return
 
             # Information is printed
@@ -181,8 +204,35 @@ class GeneticAlgorithm:
         self._population = results
 
     def evaluateFitness(self, population):
+        if self._cores > 1:
+            split_population = np.array_split(population, self._cores)
+            for mini_pop in split_population[:-1]:
+                self._in_queue.put(mini_pop)
+
+            out_list = self.singleCoreFitness(split_population[-1])
+
+            for i in range(self._cores - 1):
+                # print(self._out_queue.get())
+                out_list = np.concatenate((out_list, self._out_queue.get()))
+
+            assert(len(out_list) == self._pop_size)
+            return out_list
+
+        else:
+            return self.singleCoreFitness(population)
+
+    def singleCoreFitness(self, population):
         for individual in population:
             self._fitness_function.evaluateFitness(individual)
+
+        return population
+
+    def multiCoreFitness(self, in_queue, out_queue):
+        while True:
+            pop = in_queue.get()
+            if list(pop) == list("finish"):
+                break
+            out_queue.put(self.singleCoreFitness(pop))
 
     def angleCorrection(self):
         angle_limits = self._manipulator.getLimits()
@@ -362,7 +412,7 @@ class GeneticAlgorithm:
               "| Mean Generation Fitness: %10.8f |\n" % (self._average_case[self._generation - 1]) +
               "| Best Overall Fitness:    %10.8f |\n" % (max(self._best_case)) +
               "| Total time:                  %6.2f |\n" % (t) +
-              "- - - - - - - - - - - - - - - - - - - -", self._print_module.getPosition() + 1)
+              "- - - - - - - - - - - - - - - - - - - -", position="Current Training")
 
     def plotBest(self):
         fit = 0
@@ -374,6 +424,14 @@ class GeneticAlgorithm:
         for ang in np.transpose(best.getGenes()):
             plt.plot(ang)
         plt.show()
+
+    def buryProcesses(self):
+
+        for i in range(self._cores - 1):
+            self._in_queue.put("finish")
+
+        for p in self._processes:
+            p.join()
 
     def getAlgorithmInfo(self):
         return self._all_info
@@ -395,3 +453,6 @@ class GeneticAlgorithm:
 
     def getGraphs(self):
         return self._graphs
+
+    def getTrainingTime(self):
+        return self._total_training_time
