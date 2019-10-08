@@ -38,7 +38,7 @@ if __name__ == "__main__":
         "pop_size": [100],
         "elitism_size": [10],
         "generation_threshold": [1000],
-        "cores": [1],
+        "cores": [4],
         "generation_for_print": [1]
     }
 

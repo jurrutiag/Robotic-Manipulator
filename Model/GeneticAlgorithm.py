@@ -39,7 +39,7 @@ class GeneticAlgorithm:
         self._initial_angles = [0, 0, 0, 0]
 
         self._elitism_size = elitism_size
-        self._rate_of_selection = rate_of_selection if (rate_of_selection * pop_size >= 2 * elitism_size) else (2 * elitism_size / pop_size)
+        self._rate_of_selection = rate_of_selection
         self._selection_method = selection_method
         self._rank_probability = rank_probability
         self._safe_save = safe_save
@@ -123,16 +123,23 @@ class GeneticAlgorithm:
                     pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
                     print("| SAVED |")
 
+            # Elitism
+            elite, population_left = self.elitism()
+
+            self._population = population_left
+
             # Selection of parents
             self.selection()
 
             # Children are generated using crossover
             self.generateChildren()
 
-            assert(len(self._children) == self._pop_size)
-
             # Children are mutated
             self.mutation()
+
+            self._children = np.concatenate((self._children, elite))
+
+            assert(len(self._children) == self._pop_size)
 
             # Children are evaluated
             self._children = self.evaluateFitness(self._children)
@@ -243,19 +250,21 @@ class GeneticAlgorithm:
                     elif ind_genes[i, h] < minAngle:
                         ind_genes[i, h] = minAngle  # + (minAngle - ind_genes[i,h])
 
+    def elitism(self):
+        self._population = sorted(self._population, key=lambda x: x.getFitness(), reverse=True)
+        elite = self._population[:self._elitism_size]
+        population_left = self._population[self._elitism_size:]
+
+        return elite, population_left
+
     def selection(self):
         amount_of_parents = int(self._rate_of_selection * len(self._population))
-
-        self._population = sorted(self._population, key=lambda x: x.getFitness(), reverse=True)
-        self._children = self._population[:self._elitism_size]
-
-        population_left = self._population[self._elitism_size:]
 
         if self._selection_method == "fitness_proportional":
 
             # Probabilities of selection for each individual is calculated
             fitness_values = []
-            for individual in population_left:
+            for individual in self._population:
                 fitness_values.append(individual.getFitness())
 
             total = sum(fitness_values)
@@ -264,19 +273,19 @@ class GeneticAlgorithm:
             for fitness in fitness_values:
                 probabilities.append(fitness / total)
 
-            self._parents = np.random.choice(population_left, size=(amount_of_parents - self._elitism_size), p=probabilities)
+            self._parents = np.random.choice(self._population, size=(amount_of_parents - self._elitism_size), p=probabilities)
 
         # Rank is the default in case of misspelling
         else:
             probabilities = []
 
-            for i, ind in enumerate(population_left):
+            for i, ind in enumerate(self._population):
                 i += 1 # Starts from one
 
                 # P_i = P_c (1 - P_c) ^ (i - 1), P_n = (1 - P_c) ^ (n - 1)
                 probabilities.append((self._rank_probability if i != self._pop_size else 1) * (1 - self._rank_probability) ** (i - 1))
 
-            self._parents = np.random.choice(population_left, size=(amount_of_parents - self._elitism_size), p=probabilities)
+            self._parents = np.random.choice(self._population, size=(amount_of_parents - self._elitism_size), p=probabilities)
 
     def crossover(self, ind1, ind2):
 
@@ -305,7 +314,7 @@ class GeneticAlgorithm:
         coinToss = np.random.rand(amount, amount)
         i = 0
         j = 0
-        while len(self._children) != self._pop_size:
+        while len(self._children) != (self._pop_size - self._elitism_size):
             if i == amount  and j == amount -1:
                 i = 0
                 j = 0
