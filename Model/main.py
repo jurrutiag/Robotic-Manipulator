@@ -31,20 +31,22 @@ if __name__ == "__main__":
     #     "sampling_points": [20]
     # }
 
-    parameters_variations = {
-        "torques_error_ponderation": [0],
-        "generation_threshold": [30, 40, 50, 60],
-        "cores": [1]
-    }
+    model_repetition = 1
 
-    # Name of the set of parameters to run
-    run_name = "json_test"
+    parameters_variations = {
+        "torques_error_ponderation": [0.0003],
+        "pop_size": [100],
+        "elitism_size": [10],
+        "generation_threshold": [1000],
+        "cores": [1],
+        "generation_for_print": [1]
+    }
 
     # Filename for pickle file, this is to save the last GA object
     savefilename = "finalga.pickle"
 
     # Cores for multiprocessing
-    cores = 4
+    cores = 1
 
     # Manipulator parameters
     desired_position = [5, 5, 5]
@@ -60,14 +62,14 @@ if __name__ == "__main__":
 
     manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
 
-    save_load_json = JSONSaveLoad(parameters_from_filename=prev_parameters_dir,
-                                  quick_save_filename=quick_models_dir,
-                                  save_filename=run_name,
-                                  parameters_variations=parameters_variations)
-
     if all:
+        run_name = input("Enter the name for saving the run: ")
+        save_load_json = JSONSaveLoad(parameters_from_filename=prev_parameters_dir,
+                                      quick_save_filename=quick_models_dir,
+                                      save_filename=run_name,
+                                      parameters_variations=parameters_variations)
         if from_file:
-            save_load_json.loadParameters()
+            save_load_json.loadParameters(model_repetition)
 
             runs = save_load_json.getRuns()
             print(f"Executing models on {cores} cores...")

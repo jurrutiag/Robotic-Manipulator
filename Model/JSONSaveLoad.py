@@ -27,7 +27,7 @@ class JSONSaveLoad:
         self._parameters_variations = parameters_variations
         self._parameters = {}
 
-    def loadParameters(self):
+    def loadParameters(self, repetitions=1):
         if self._parameters_from_filename:
             with open(self._parameters_from_filename) as f:
                 parameters = json.load(f)
@@ -43,7 +43,7 @@ class JSONSaveLoad:
                     for key, val in run_change.items():
                         run[key] = val
                     runs.append(run)
-                parameters["Runs"] = runs
+                parameters["Runs"] = [r for r in runs for i in range(repetitions)]
 
             self._parameters = parameters
 
@@ -73,6 +73,7 @@ class JSONSaveLoad:
             new_individual["Info"] = GA.getAlgorithmInfo()
             new_individual["Time of Training"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             new_individual["Total Training Time"] = GA.getTrainingTime()
+            new_individual["Last Generation"] = GA.getGeneration()
             new_individual["Fitness"] = GA.getBestIndividual().getFitness()
             new_individual["Animate"] = False
             best_individuals.append(new_individual)

@@ -57,7 +57,7 @@ class RoboticManipulator:
             end_effector_height
         ]
 
-        return A3_position, A4_position, end_effector_position
+        return [0, 0, L1], A3_position, A4_position, end_effector_position
 
     def getMass(self):
         return self._mass
@@ -71,4 +71,11 @@ class RoboticManipulator:
 if __name__ == "__main__":
     rb = RoboticManipulator((5, 5, 5, 5), (1, 1, 1))
 
-    print(rb.anglesToPositions(0.84260399, -1.1828686, 1.09675171, 1.41007504))
+    pos = rb.anglesToPositions(0, 0, 0, 0)
+
+    r_1 = pos[0]
+    r_2 = pos[1]
+    r_3 = pos[2]
+    r_4 = pos[3]
+    print(pos)
+    print(r_1, r_2, r_3, r_4)

@@ -8,7 +8,6 @@ import time
 import pickle
 from PrintModule import PrintModule
 import multiprocessing
-import psutil
 
 
 class GeneticAlgorithm:
@@ -17,8 +16,16 @@ class GeneticAlgorithm:
                  mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
                  sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=3000,
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
-                 torques_error_ponderation=0.01, distance_error_ponderation=1, generation_for_print=10, safe_save=True,
-                 plot_fitness=True, plot_best=False, exponential_initialization=False):
+                 torques_error_ponderation=0.01, distance_error_ponderation=1, rate_of_selection=0.3, elitism_size=20,
+                 selection_method="rank", rank_probability=0.5, generation_for_print=10, safe_save=True,
+                 plot_fitness=True, plot_best=False, exponential_initialization=False, total_time=5):
+
+        # Algorithm info for save
+
+        self._all_info = locals().copy()
+        del self._all_info["print_module"]
+        del self._all_info["manipulator"]
+        del self._all_info["self"]
 
         # Algorithm parameters
 
@@ -31,7 +38,10 @@ class GeneticAlgorithm:
         self._sampling_points = sampling_points # N_k
         self._initial_angles = [0, 0, 0, 0]
 
-        self._rate_of_selection = 0.3
+        self._elitism_size = elitism_size
+        self._rate_of_selection = rate_of_selection if (rate_of_selection * pop_size >= 2 * elitism_size) else (2 * elitism_size / pop_size)
+        self._selection_method = selection_method
+        self._rank_probability = rank_probability
         self._safe_save = safe_save
         self._save_filename = "gasafe.pickle"
         self._generation_for_print = generation_for_print
@@ -52,7 +62,8 @@ class GeneticAlgorithm:
         # Fitness Function
 
         self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations,
-                                                                 desired_position, distance_error_ponderation=distance_error_ponderation,
+                                                                 desired_position, sampling_points,
+                                                                 total_time, distance_error_ponderation=distance_error_ponderation,
                                                                  torques_error_ponderation=torques_error_ponderation)
 
         # Fitness Results
@@ -71,25 +82,11 @@ class GeneticAlgorithm:
         # Algorithm timing, resource measure and prints
 
         self._print_module = print_module if print_module is not None else PrintModule()
-        cpu_values = []
-        for _ in range(50):
-            cpu_values.append(psutil.cpu_percent())
-            time.sleep(0.1)
-        self._mean_previous_cpu = np.mean(cpu_values)
-        self._start_time = 0
-        self._total_training_time = -1
 
         # Final Results
 
         self._best_individual = None
         self._graphs = None
-
-        # Algorithm info for save
-
-        self._all_info = locals().copy()
-        del self._all_info["print_module"]
-        del self._all_info["manipulator"]
-        del self._all_info["self"]
 
         # MultiCore algorithm
 
@@ -126,18 +123,13 @@ class GeneticAlgorithm:
                     pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
                     print("| SAVED |")
 
-            # Probabilities of selection for each individual is calculated
-            fitness_values = []
-            for individual in self._population:
-                fitness_values.append(individual.getFitness())
-
-            probabilities = self.probabilitiesOfSelection(fitness_values)
-
             # Selection of parents
-            self.selection(self._rate_of_selection, probabilities)
+            self.selection()
 
             # Children are generated using crossover
             self.generateChildren()
+
+            assert(len(self._children) == self._pop_size)
 
             # Children are mutated
             self.mutation()
@@ -251,19 +243,40 @@ class GeneticAlgorithm:
                     elif ind_genes[i, h] < minAngle:
                         ind_genes[i, h] = minAngle  # + (minAngle - ind_genes[i,h])
 
-    def probabilitiesOfSelection(self, fitness_values):
-        total = sum(fitness_values)
-        probabilities = []
+    def selection(self):
+        amount_of_parents = int(self._rate_of_selection * len(self._population))
 
-        for fitness in fitness_values:
-            probabilities.append(fitness / total)
+        self._population = sorted(self._population, key=lambda x: x.getFitness(), reverse=True)
+        self._children = self._population[:self._elitism_size]
 
-        return probabilities
+        population_left = self._population[self._elitism_size:]
 
-    def selection(self, rate, probabilities):
-        amount_of_parents = int(rate * len(self._population))
+        if self._selection_method == "fitness_proportional":
 
-        self._parents = np.random.choice(self._population, size=amount_of_parents, p=probabilities)
+            # Probabilities of selection for each individual is calculated
+            fitness_values = []
+            for individual in population_left:
+                fitness_values.append(individual.getFitness())
+
+            total = sum(fitness_values)
+            probabilities = []
+
+            for fitness in fitness_values:
+                probabilities.append(fitness / total)
+
+            self._parents = np.random.choice(population_left, size=(amount_of_parents - self._elitism_size), p=probabilities)
+
+        # Rank is the default in case of misspelling
+        else:
+            probabilities = []
+
+            for i, ind in enumerate(population_left):
+                i += 1 # Starts from one
+
+                # P_i = P_c (1 - P_c) ^ (i - 1), P_n = (1 - P_c) ^ (n - 1)
+                probabilities.append((self._rank_probability if i != self._pop_size else 1) * (1 - self._rank_probability) ** (i - 1))
+
+            self._parents = np.random.choice(population_left, size=(amount_of_parents - self._elitism_size), p=probabilities)
 
     def crossover(self, ind1, ind2):
 
@@ -456,3 +469,6 @@ class GeneticAlgorithm:
 
     def getTrainingTime(self):
         return self._total_training_time
+
+    def getGeneration(self):
+        return self._generation

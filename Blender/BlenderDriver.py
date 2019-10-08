@@ -101,7 +101,6 @@ if __name__ == "__main__":
     import sys
 
     sys.path.insert(1, 'D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model')
-    from GeneticAlgorithm import GeneticAlgorithm
     import numpy as np
     import RoboticManipulator
     import json
@@ -112,12 +111,13 @@ if __name__ == "__main__":
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
-    models_batch_name = "128_runs_4_cores_torque_and_no_torque"
+    models_batch_name = "json_test"
 
     with open("D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json") as f:
         best_individuals = json.load(f)
         for ind in best_individuals["Best Individuals"]:
             if ind["Animate"]:
+                ind["Animate"] = False
                 test_individual = ind["Genes"]
                 print(test_individual)
 
@@ -129,5 +129,8 @@ if __name__ == "__main__":
                 break
         else:
             print("No individual to animate...")
+    with open(
+        "D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json", 'w') as f:
+        json.dump(best_individuals, f)
 
 

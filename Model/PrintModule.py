@@ -57,7 +57,7 @@ class PrintModule:
         self._lock = lock
 
     def setProcess(self, n_proc):
-        self._positions["Quick Information"] = (7 * n_proc + 7, 6)
+        self._positions["Quick Information"] = (7 * n_proc + 7, 1)
         self._positions["Current Training"] = (7 * n_proc + 8, 6)
 
     def setCores(self, cores):

@@ -26,10 +26,14 @@
     "generations_progress_threshold": 50,
     "torques_error_ponderation": 0,
     "distance_error_ponderation": 1,
-    "generation_for_print": 10,
+    "elitism_size": 20,
+    "selection_method": "rank",
+    "rank_probability": 0.5,
+    "generation_for_print": 1,
     "safe_save": false,
     "plot_fitness": true,
     "plot_best": false,
-    "exponential_initialization": false
+    "exponential_initialization": false,
+    "total_time": 5
   }
 }

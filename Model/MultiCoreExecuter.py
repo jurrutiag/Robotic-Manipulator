@@ -25,9 +25,7 @@ class MultiCoreExecuter:
             for i, run in enumerate(self._runs):
                 print_module.print(f"Run number {i + 1}, with parameters: " + json.dumps(run), position="Current Information", color="red")
                 GA = GeneticAlgorithm(self._manipulator, print_module=print_module, **run)
-                GA.runAlgorithm()
-
-                self._json_handler.saveJson(GA)
+                self.GAExecuter(GA)
 
         else:
             print_module.setCores(self._cores)
