@@ -392,22 +392,41 @@ class GeneticAlgorithm:
     def getBestAndAverage(self):
         max_fitness = 0
         mean_fitness = 0
+        min_torque = math.inf
+        mean_torque = 0
+        min_distance = math.inf
+        mean_torque = 0
+
         for ind in self._population:
             fitness = ind.getFitness()
             max_fitness = fitness if fitness > max_fitness else max_fitness
             mean_fitness += fitness
-        mean_fitness /= len(self._population)
 
-        self._best_case.append(max_fitness)
-        self._average_case.append(mean_fitness)
+            torque = ind.getTorque()
+            min_torque = torque if torque < min_torque else min_torque
+            mean_torque += torque
+
+            distance = ind.getDistance()
+            min_distance = distance if distance < min_distance else min_distance
+            mean_distance += distance
+
+        mean_fitness /= len(self._population)
+        mean_torque /=len(self._population)
+        mean_distance /=len(self._distance)
+
+        self._best_case.append([max_fitness,min_torque,min_distance])
+        self._average_case.append([mean_fitness,mean_torque,mean_distance])
 
     def graph(self, choice):
         fig_fitness, ax_fitness = plt.subplots(ncols=1, nrows=1)
+        best_case_np = np.array(self._best_case)
+        average_case_np = np.array(self._average_case)
         cases = ['mejor caso', 'promedio']
+
         if choice == 0 or choice >= len(cases):
-            ax_fitness.plot(self._best_case, label=cases[0])
+            ax_fitness.plot(best_case_np[:,0], label=cases[0])
         if choice == 1 or choice >= len(cases):
-            ax_fitness.plot(self._average_case, label=cases[1])
+            ax_fitness.plot(average_case_np[:,0], label=cases[1])
 
         ax_fitness.legend(["Mejor Caso", "Promedio"])
         ax_fitness.set_xlabel('Generación', fontsize=10)

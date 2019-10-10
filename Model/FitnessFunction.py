@@ -13,6 +13,9 @@ class FitnessFunction:
         self._torques_error_ponderation = torques_error_ponderation
         self._delta_t = 1
 
+        self._torque = 0
+        self._dist = 0
+
     def evaluateFitness(self, individual):
 
         positions = self.getPositions(individual)
@@ -33,6 +36,8 @@ class FitnessFunction:
         fitness = 1 / (1 + self._torques_error_ponderation * torques_error + self._distance_error_ponderation * distance_error)
 
         individual.setFitness(fitness)
+        self._torque = torques_error
+        self._dist = distance_error
 
     #retorna posiciones cartesionas de las tres masas móviles del brazo
     def getPositions(self, individual):
@@ -123,4 +128,10 @@ class FitnessFunction:
             gravity_torques.append([0, gravity_torque_1, gravity_torque_2, gravity_torque_3])
 
         return angularAccelerations * inertias - gravity_torques
+
+    def getTorques(self):
+        return self._torque
+
+    def getDistance(self):
+        return self._dist
 
