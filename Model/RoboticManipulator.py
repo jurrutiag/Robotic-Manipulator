@@ -71,7 +71,9 @@ class RoboticManipulator:
 if __name__ == "__main__":
     rb = RoboticManipulator((5, 5, 5, 5), (1, 1, 1))
 
-    pos = rb.anglesToPositions(0, 0, 0, 0)
+
+
+    pos = rb.anglesToPositions(0.7852755591127947, 1.3508413788012184, -1.3461895993542783, -1.3779707726237265)
 
     r_1 = pos[0]
     r_2 = pos[1]

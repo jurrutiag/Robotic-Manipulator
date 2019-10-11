@@ -86,7 +86,8 @@ class GeneticAlgorithm:
         # Final Results
 
         self._best_individual = None
-        self._graphs = []
+        self._graphs_fitness = []
+        self._graphs_individuals = []
 
         # MultiCore algorithm
 
@@ -143,8 +144,6 @@ class GeneticAlgorithm:
             self._children = np.concatenate((self._children, elite))
 
             assert(len(self._children) == self._pop_size)
-
-
 
             # Parents are replaced by children
             self.replacement()
@@ -219,7 +218,8 @@ class GeneticAlgorithm:
                 # print(self._out_queue.get())
                 out_list = np.concatenate((out_list, self._out_queue.get()))
 
-            assert(len(out_list) == self._pop_size)
+            assert(len(out_list) == self._pop_size or len(out_list) == self._pop_size - self._elitism_size)
+
             return out_list
 
         else:
@@ -320,7 +320,7 @@ class GeneticAlgorithm:
         coinToss = np.random.rand(amount,amount)
         i = 0
         j = 0
-        while len(self._children) != (self._pop_size - self._elitism_size):
+        while len(self._children) < (self._pop_size - self._elitism_size):
             if i == amount  and j == amount -1:
                 i = 0
                 j = 0
@@ -418,14 +418,14 @@ class GeneticAlgorithm:
             mean_distance += distance
 
         mean_fitness /= len(self._population)
-        mean_torque /=len(self._population)
-        mean_distance /=len(self._population)
+        mean_torque /= len(self._population)
+        mean_distance /= len(self._population)
 
-        self._best_case.append([max_fitness,min_torque,min_distance])
-        self._average_case.append([mean_fitness,mean_torque,mean_distance])
+        self._best_case.append([max_fitness, min_torque, min_distance])
+        self._average_case.append([mean_fitness, mean_torque, mean_distance])
 
     def graph(self, choice):
-        #fitness
+        # Fitness
         fig_fitness, ax_fitness = plt.subplots(ncols=1, nrows=1)
         best_case_np = np.array(self._best_case)
         average_case_np = np.array(self._average_case)
@@ -440,8 +440,9 @@ class GeneticAlgorithm:
         ax_fitness.set_xlabel('Generación', fontsize=10)
         ax_fitness.set_ylabel('Función de Fitness', fontsize=10)
         ax_fitness.set_title('Evolución del algoritmo genético')
-        plt.show()
-        #torque
+        # plt.show()
+
+        # Torque
         fig_torque, ax_torque = plt.subplots(ncols=1, nrows=1)
         best_case_np = np.array(self._best_case)
         average_case_np = np.array(self._average_case)
@@ -456,8 +457,9 @@ class GeneticAlgorithm:
         ax_torque.set_xlabel('Generación', fontsize=10)
         ax_torque.set_ylabel('Torque', fontsize=10)
         ax_torque.set_title('Evolución del algoritmo genético')
-        plt.show()
-        #distancia
+        # plt.show()
+
+        # Distancia
         fig_distancia, ax_distancia = plt.subplots(ncols=1, nrows=1)
         best_case_np = np.array(self._best_case)
         average_case_np = np.array(self._average_case)
@@ -484,8 +486,8 @@ class GeneticAlgorithm:
         #ax_best_individual.set_xlabel("Unidad de Tiempo")
         #ax_best_individual.set_ylabel("Ángulo [rad]")
 
-        plt.show()
-        self._graphs.append(fig_fitness)
+        # plt.show()
+        self._graphs_fitness.append([fig_fitness, fig_torque, fig_distancia])
 
 
     def graphIndividual(self):
@@ -499,8 +501,8 @@ class GeneticAlgorithm:
             ax_best_individual.set_title("Mejor individuo")
             ax_best_individual.set_xlabel("Unidad de Tiempo")
             ax_best_individual.set_ylabel("Ángulo [rad]")
-            plt.show()
-            self._graphs.append(fig_best_individual)
+            # plt.show()
+            self._graphs_individuals.append([fig_best_individual, self._generation])
 
 
     def printGenerationData(self):
@@ -552,8 +554,11 @@ class GeneticAlgorithm:
     def getAverageCase(self):
         return self._average_case
 
-    def getGraphs(self):
-        return self._graphs
+    def getFitnessGraphs(self):
+        return self._graphs_fitness
+
+    def getIndividualsGraphs(self):
+        return self._graphs_individuals
 
     def getTrainingTime(self):
         return self._total_training_time

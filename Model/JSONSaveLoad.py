@@ -18,6 +18,10 @@ class JSONSaveLoad:
         if not os.path.exists(self._trained_models_dir):
             os.makedirs(self._trained_models_dir)
             os.makedirs(self._trained_models_dir + "/Graphs")
+            os.makedirs(self._trained_models_dir + "/Graphs/Individuals")
+            os.makedirs(self._trained_models_dir + "/Graphs/Torque")
+            os.makedirs(self._trained_models_dir + "/Graphs/Fitness")
+            os.makedirs(self._trained_models_dir + "/Graphs/Distance")
             with open(self._trained_models_dir + "/" + self._save_filename + ".json", 'w') as f:
                 pass
             with open(self._trained_models_dir + "/" + self._save_filename + ".json", 'w') as f:
@@ -60,9 +64,16 @@ class JSONSaveLoad:
             individuals_json = json.load(f)
             index = individuals_json["Index"]
 
-            graphs = GA.getGraphs()
-            graphs[0].savefig(self._trained_models_dir + "/Graphs/fitness_graph_" + str(index))
-            graphs[1].savefig(self._trained_models_dir + "/Graphs/best_individual_graph_" + str(index))
+            fit_graphs, torque_graphs, dist_graphs = GA.getFitnessGraphs()[0]
+
+            fit_graphs.savefig(self._trained_models_dir + "/Graphs/Fitness/fitness_graph_" + str(index))
+            torque_graphs.savefig(self._trained_models_dir + "/Graphs/Torque/torque_graph_" + str(index))
+            dist_graphs.savefig(self._trained_models_dir + "/Graphs/Distance/distance_graph_" + str(index))
+
+            ind_graphs = GA.getIndividualsGraphs()
+
+            for graph in ind_graphs:
+                graph[0].savefig(self._trained_models_dir + "/Graphs/Individuals/best_individual_graph_" + str(index) + "_gen_" + str(graph[1]))
 
             plt.close('all')
 

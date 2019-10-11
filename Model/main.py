@@ -18,40 +18,43 @@ if __name__ == "__main__":
     all = True
 
     # True if you want to load the parameters from a JSON file
-    from_file = False
+    from_file = True
 
     # Parameters to change on the json
-    parameters_variations = {
-        "torques_error_ponderation": [0, 0.0003],
-        "generation_threshold": [3000],
-        "pop_size": [100, 150],
-        "elitism_size": [10, 20],
-        "cross_individual_prob": [0.8],
-        "mut_individual_prob": [0.01, 0.05],
-        "cross_joint_prob": [0.25, 0.5],
-        "mut_joint_prob": [0.25, 0.5],
-        "sampling_points": [20]
-    }
+    # parameters_variations = {
+    #     "torques_error_ponderation": [0, 0.0003],
+    #     "generation_threshold": [3000],
+    #     "pop_size": [100, 150],
+    #     "elitism_size": [10, 20],
+    #     "cross_individual_prob": [0.8],
+    #     "mut_individual_prob": [0.01, 0.05],
+    #     "cross_joint_prob": [0.25, 0.5],
+    #     "mut_joint_prob": [0.25, 0.5],
+    #     "sampling_points": [20]
+    # }
 
     model_repetition = 1
 
-    # parameters_variations = {
-    #     "torques_error_ponderation": [0.0003],
-    #     "pop_size": [100],
-    #     "elitism_size": [10],
-    #     "generation_threshold": [10000],
-    #     "cores": [4],
-    #     "generation_for_print": [100]
-    # }
+    parameters_variations = {
+        "torques_error_ponderation": [0.0003],
+        "pop_size": [100],
+        "elitism_size": [10],
+        "generation_threshold": [1000],
+        "cores": [4],
+        "generation_for_print": [100],
+        "mut_individual_prob": [0.5],
+        "sampling_points": [30],
+        "desired_position": [[8, 4, 6]]
+    }
 
     # Filename for pickle file, this is to save the last GA object
     savefilename = "finalga.pickle"
 
     # Cores for multiprocessing
-    cores = 4
+    cores = 1
 
     # Manipulator parameters
-    desired_position = [5, 5, 5]
+    desired_position = [5, 5, 10]
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
