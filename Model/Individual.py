@@ -5,6 +5,8 @@ class Individual:
     def __init__(self, genes, id=0):
         self._genes = genes
         self._fitness = None
+        self._torque = None
+        self._distance = None
         self._id = id
 
     def getGenes(self):
@@ -30,3 +32,15 @@ class Individual:
 
     def getId(self):
         return self._id
+
+    def setTorque(self, torque):
+        self._torque = torque
+
+    def getTorque(self):
+        return self._torque
+
+    def setDistance(self, distance):
+        self._distance = distance
+
+    def getDistance(self):
+        return self._distance

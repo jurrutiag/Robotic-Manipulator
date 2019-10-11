@@ -8,6 +8,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from JSONSaveLoad import JSONSaveLoad
     from MultiCoreExecuter import MultiCoreExecuter
+    from PrintModule import PrintModule
 
     ## Configurations
 
@@ -17,7 +18,7 @@ if __name__ == "__main__":
     all = True
 
     # True if you want to load the parameters from a JSON file
-    from_file = True
+    from_file = False
 
     # Parameters to change on the json
     parameters_variations = {
@@ -78,6 +79,10 @@ if __name__ == "__main__":
             executer.run()
 
         else:
+            print_module = PrintModule()
+            print_module.initialize()
+            print_module.clear()
+            GA = GeneticAlgorithm(manipulator, print_module=print_module, desired_position = desired_position, cores = cores)
             GA.runAlgorithm()
             best_individual = GA.getBestIndividual()
 

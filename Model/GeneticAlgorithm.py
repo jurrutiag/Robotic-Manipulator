@@ -13,10 +13,10 @@ import multiprocessing
 class GeneticAlgorithm:
 
     def __init__(self, manipulator, desired_position, print_module=None, cores=1, pop_size=100, cross_individual_prob=0.6,
-                 mut_individual_prob=0.05, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
-                 sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=3000,
+                 mut_individual_prob=0.5, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
+                 sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=1000,
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
-                 torques_error_ponderation=0.01, distance_error_ponderation=1, rate_of_selection=0.3, elitism_size=20,
+                 torques_error_ponderation=0.01, distance_error_ponderation=1, rate_of_selection=0.3, elitism_size=10,
                  selection_method="rank", rank_probability=0.5, generation_for_print=10, safe_save=True,
                  plot_fitness=True, plot_best=False, exponential_initialization=False, total_time=5):
 
@@ -86,7 +86,7 @@ class GeneticAlgorithm:
         # Final Results
 
         self._best_individual = None
-        self._graphs = None
+        self._graphs = []
 
         # MultiCore algorithm
 
@@ -126,7 +126,7 @@ class GeneticAlgorithm:
             # Elitism
             elite, population_left = self.elitism()
 
-            self._population = population_left
+            self._population = population_left[:]
 
             # Selection of parents
             self.selection()
@@ -137,12 +137,14 @@ class GeneticAlgorithm:
             # Children are mutated
             self.mutation()
 
+            # Children are evaluated
+            self._children = self.evaluateFitness(self._children)
+
             self._children = np.concatenate((self._children, elite))
 
             assert(len(self._children) == self._pop_size)
 
-            # Children are evaluated
-            self._children = self.evaluateFitness(self._children)
+
 
             # Parents are replaced by children
             self.replacement()
@@ -169,6 +171,9 @@ class GeneticAlgorithm:
                 if self._plot_best:
                     self.plotBest()
                 self.printGenerationData()
+
+            self.findBestIndividual()
+            self.graphIndividual()
 
     def initialization(self):
 
@@ -312,7 +317,7 @@ class GeneticAlgorithm:
 
     def generateChildren(self):
         amount = len(self._parents)
-        coinToss = np.random.rand(amount, amount)
+        coinToss = np.random.rand(amount,amount)
         i = 0
         j = 0
         while len(self._children) != (self._pop_size - self._elitism_size):
@@ -373,8 +378,9 @@ class GeneticAlgorithm:
         self._generation += 1
 
     def terminationCondition(self):
+        best_case_np = np.array(self._best_case)
         generationLimitCondition = self._generation > self._generation_threshold
-        bestIndividualCondition = self._best_case[len(self._best_case) - 1] > self._fitness_threshold
+        bestIndividualCondition = best_case_np[len(self._best_case) - 1,0] > self._fitness_threshold
         # progressCondition = self._best_case[len(self._best_case) - 1 - self._generations_progress_threshold] - self._best_case[len(self._best_case) - 1] < self._progress_threshold
         progressCondition = False
 
@@ -393,47 +399,119 @@ class GeneticAlgorithm:
     def getBestAndAverage(self):
         max_fitness = 0
         mean_fitness = 0
+        min_torque = math.inf
+        mean_torque = 0
+        min_distance = math.inf
+        mean_distance = 0
+
         for ind in self._population:
             fitness = ind.getFitness()
             max_fitness = fitness if fitness > max_fitness else max_fitness
             mean_fitness += fitness
-        mean_fitness /= len(self._population)
 
-        self._best_case.append(max_fitness)
-        self._average_case.append(mean_fitness)
+            torque = ind.getTorque()
+            min_torque = torque if torque < min_torque else min_torque
+            mean_torque += torque
+
+            distance = ind.getDistance()
+            min_distance = distance if distance < min_distance else min_distance
+            mean_distance += distance
+
+        mean_fitness /= len(self._population)
+        mean_torque /=len(self._population)
+        mean_distance /=len(self._population)
+
+        self._best_case.append([max_fitness,min_torque,min_distance])
+        self._average_case.append([mean_fitness,mean_torque,mean_distance])
 
     def graph(self, choice):
+        #fitness
         fig_fitness, ax_fitness = plt.subplots(ncols=1, nrows=1)
+        best_case_np = np.array(self._best_case)
+        average_case_np = np.array(self._average_case)
         cases = ['mejor caso', 'promedio']
+
         if choice == 0 or choice >= len(cases):
-            ax_fitness.plot(self._best_case, label=cases[0])
+            ax_fitness.plot(best_case_np[:,0], label=cases[0])
         if choice == 1 or choice >= len(cases):
-            ax_fitness.plot(self._average_case, label=cases[1])
+            ax_fitness.plot(average_case_np[:,0], label=cases[1])
 
         ax_fitness.legend(["Mejor Caso", "Promedio"])
         ax_fitness.set_xlabel('Generación', fontsize=10)
         ax_fitness.set_ylabel('Función de Fitness', fontsize=10)
         ax_fitness.set_title('Evolución del algoritmo genético')
+        plt.show()
+        #torque
+        fig_torque, ax_torque = plt.subplots(ncols=1, nrows=1)
+        best_case_np = np.array(self._best_case)
+        average_case_np = np.array(self._average_case)
+        cases = ['mejor caso', 'promedio']
 
-        fig_best_individual, ax_best_individual = plt.subplots(ncols=1, nrows=1)
+        if choice == 0 or choice >= len(cases):
+            ax_torque.plot(best_case_np[:,1], label=cases[0])
+        if choice == 1 or choice >= len(cases):
+            ax_torque.plot(average_case_np[:,1], label=cases[1])
 
-        for ang in np.transpose(self._best_individual.getGenes()):
-            ax_best_individual.plot(ang)
+        ax_torque.legend(["Mejor Caso", "Promedio"])
+        ax_torque.set_xlabel('Generación', fontsize=10)
+        ax_torque.set_ylabel('Torque', fontsize=10)
+        ax_torque.set_title('Evolución del algoritmo genético')
+        plt.show()
+        #distancia
+        fig_distancia, ax_distancia = plt.subplots(ncols=1, nrows=1)
+        best_case_np = np.array(self._best_case)
+        average_case_np = np.array(self._average_case)
+        cases = ['mejor caso', 'promedio']
 
-        ax_best_individual.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
-        ax_best_individual.set_title("Mejor individuo")
-        ax_best_individual.set_xlabel("Unidad de Tiempo")
-        ax_best_individual.set_ylabel("Ángulo [rad]")
+        if choice == 0 or choice >= len(cases):
+            ax_distancia.plot(best_case_np[:,2], label=cases[0])
+        if choice == 1 or choice >= len(cases):
+            ax_distancia.plot(average_case_np[:,2], label=cases[1])
 
-        self._graphs = fig_fitness, fig_best_individual
+        ax_distancia.legend(["Mejor Caso", "Promedio"])
+        ax_distancia.set_xlabel('Generación', fontsize=10)
+        ax_distancia.set_ylabel('Distancia', fontsize=10)
+        ax_distancia.set_title('Evolución del algoritmo genético')
+
+        #mejor individuo
+        #fig_best_individual, ax_best_individual = plt.subplots(ncols=1, nrows=1)
+
+        #for ang in np.transpose(self._best_individual.getGenes()):
+        #    ax_best_individual.plot(ang)
+
+        #ax_best_individual.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
+        #ax_best_individual.set_title("Mejor individuo")
+        #ax_best_individual.set_xlabel("Unidad de Tiempo")
+        #ax_best_individual.set_ylabel("Ángulo [rad]")
+
+        plt.show()
+        self._graphs.append(fig_fitness)
+
+
+    def graphIndividual(self):
+        if self._generation == self._generation_threshold or self._generation % (round(self._generation_threshold/3)) == 0:
+            fig_best_individual, ax_best_individual = plt.subplots(ncols=1, nrows=1)
+
+            for ang in np.transpose(self._best_individual.getGenes()):
+                ax_best_individual.plot(ang)
+
+            ax_best_individual.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
+            ax_best_individual.set_title("Mejor individuo")
+            ax_best_individual.set_xlabel("Unidad de Tiempo")
+            ax_best_individual.set_ylabel("Ángulo [rad]")
+            plt.show()
+            self._graphs.append(fig_best_individual)
+
 
     def printGenerationData(self):
         t = time.time() - self._start_time
+        best_case_np = np.array(self._best_case)
+        average_case_np = np.array(self._average_case)
 
         self._print_module.print("| Generation:                    %4.4d |\n" % (self._generation) +
-              "| Best Generation Fitness: %10.8f |\n" % (self._best_case[self._generation - 1]) +
-              "| Mean Generation Fitness: %10.8f |\n" % (self._average_case[self._generation - 1]) +
-              "| Best Overall Fitness:    %10.8f |\n" % (max(self._best_case)) +
+              "| Best Generation Fitness: %10.8f |\n" % (best_case_np[self._generation - 1,0]) +
+              "| Mean Generation Fitness: %10.8f |\n" % (average_case_np[self._generation - 1,0]) +
+              "| Best Overall Fitness:    %10.8f |\n" % (max(best_case_np[:,0])) +
               "| Total time:                  %6.2f |\n" % (t) +
               "- - - - - - - - - - - - - - - - - - - -", position="Current Training")
 
