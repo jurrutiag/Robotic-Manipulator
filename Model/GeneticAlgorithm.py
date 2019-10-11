@@ -254,6 +254,7 @@ class GeneticAlgorithm:
         self._population = sorted(self._population, key=lambda x: x.getFitness(), reverse=True)
         elite = self._population[:self._elitism_size]
         population_left = self._population[self._elitism_size:]
+        # population_left = self._population
 
         return elite, population_left
 

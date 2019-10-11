@@ -29,7 +29,7 @@
     "elitism_size": 20,
     "selection_method": "rank",
     "rank_probability": 0.5,
-    "generation_for_print": 1,
+    "generation_for_print": 100,
     "safe_save": false,
     "plot_fitness": true,
     "plot_best": false,
