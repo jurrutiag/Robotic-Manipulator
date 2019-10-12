@@ -41,10 +41,11 @@ if __name__ == "__main__":
         "elitism_size": [10],
         "generation_threshold": [1000],
         "cores": [4],
-        "generation_for_print": [100],
-        "mut_individual_prob": [0.5],
-        "sampling_points": [30],
-        "desired_position": [[8, 4, 6]]
+        "generation_for_print": [10],
+        "mut_individual_prob": [0.05],
+        "sampling_points": [10],
+        "desired_position": [[5, 5, 10]],
+        "total_time": [5]
     }
 
     # Filename for pickle file, this is to save the last GA object

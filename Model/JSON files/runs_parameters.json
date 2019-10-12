@@ -21,7 +21,7 @@
       1
     ],
     "generation_threshold": 30,
-    "fitness_threshold": 0.9,
+    "fitness_threshold": 1,
     "progress_threshold": 1,
     "generations_progress_threshold": 50,
     "torques_error_ponderation": 0,

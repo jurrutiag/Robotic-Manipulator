@@ -111,7 +111,7 @@ if __name__ == "__main__":
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
-    models_batch_name = "meeting2"
+    models_batch_name = "meeting2extra"
 
     with open("D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json") as f:
         best_individuals = json.load(f)

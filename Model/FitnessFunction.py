@@ -25,11 +25,9 @@ class FitnessFunction:
             angAccelerations = self.getAngularAccelerations(individual)
 
             inertias = self.getInertias(positions)
-            torques = self.getTorques(angAccelerations, inertias, positions)
+            torques = self.getTorques(angAccelerations, inertias, positions, individual)
 
-            sum_torques = np.linalg.norm(torques, ord=1, axis=0)
-
-            torques_error = sum_torques @ self._torques_ponderations
+            torques_error = torques @ np.array(self._torques_ponderations)
         else:
             torques_error = 0
 
@@ -102,7 +100,7 @@ class FitnessFunction:
 
         return inertias
 
-    def getTorques(self, angularAccelerations, inertias, positions):
+    def getTorques(self, angularAccelerations, inertias, positions, individual):
 
         g = 9.8
         gravity_torques = []
@@ -121,12 +119,37 @@ class FitnessFunction:
             force_2 = np.array([0, 0, -(mass[1] + mass[2]) * g])
             force_3 = np.array([0, 0, -mass[2] * g])
 
-            gravity_torque_1 = np.linalg.norm(np.cross(mass_center1, force_1), ord=2)
-            gravity_torque_2 = np.linalg.norm(np.cross(mass_center2, force_2), ord=2)
-            gravity_torque_3 = np.linalg.norm(np.cross(mass_center3, force_3), ord=2)
+            gravity_torque_1 = np.cross(mass_center1, force_1)
+            gravity_torque_2 = np.cross(mass_center2, force_2)
+            gravity_torque_3 = np.cross(mass_center3, force_3)
 
             gravity_torques.append([0, gravity_torque_1, gravity_torque_2, gravity_torque_3])
 
-        return angularAccelerations * inertias - gravity_torques
+        # Torque axis
+
+        gravity_torques_array = np.array(gravity_torques)
+
+        angles = individual.getGenes()
+        angles_1 = angles[:, 0]
+        phi_x = np.expand_dims(np.cos(angles_1 - np.pi / 2), axis=1)
+        phi_y = np.expand_dims(np.sin(angles_1 - np.pi / 2), axis=1)
+
+        torque_value = angularAccelerations * inertias
+
+        torque_value_1 = np.expand_dims(torque_value[:, 1], axis=1)
+        torque_value_2 = np.expand_dims(torque_value[:, 2], axis=1)
+        torque_value_3 = np.expand_dims(torque_value[:, 3], axis=1)
+
+        t_1 = np.array(list(map(lambda x: x * np.array([0, 0, 1]), torque_value[:, 0])))
+        t_2 = np.concatenate([phi_x * torque_value_1, phi_y * torque_value_1, np.zeros([len(phi_x), 1])], axis=1)
+        t_3 = np.concatenate([phi_x * torque_value_2, phi_y * torque_value_2, np.zeros([len(phi_x), 1])], axis=1)
+        t_4 = np.concatenate([phi_x * torque_value_3, phi_y * torque_value_3, np.zeros([len(phi_x), 1])], axis=1)
+
+        t_1_norm = np.linalg.norm(t_1, axis=1, ord=2)
+        t_2_norm = np.linalg.norm(t_2, axis=1, ord=2)
+        t_3_norm = np.linalg.norm(t_3, axis=1, ord=2)
+        t_4_norm = np.linalg.norm(t_4, axis=1, ord=2)
+
+        return np.array([sum(t_1_norm), sum(t_2_norm), sum(t_3_norm), sum(t_4_norm)])
 
 
