@@ -17,7 +17,7 @@ class GeneticAlgorithm:
                  sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=1000,
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
                  torques_error_ponderation=0.01, distance_error_ponderation=1, rate_of_selection=0.3, elitism_size=10,
-                 selection_method="rank", rank_probability=0.5, generation_for_print=10, safe_save=True,
+                 selection_method="rank", rank_probability=0.5, generation_for_print=10,
                  plot_fitness=True, plot_best=False, exponential_initialization=False, total_time=5):
 
         # Algorithm info for save
@@ -42,8 +42,6 @@ class GeneticAlgorithm:
         self._rate_of_selection = rate_of_selection
         self._selection_method = selection_method
         self._rank_probability = rank_probability
-        self._safe_save = safe_save
-        self._save_filename = "gasafe.pickle"
         self._generation_for_print = generation_for_print
         self._plot_best = plot_best
         self._plot_fitness = plot_fitness
@@ -105,7 +103,7 @@ class GeneticAlgorithm:
                 self._processes.append(p)
                 p.start()
 
-    def runAlgorithm(self):
+    def runAlgorithm(self, print=True):
 
         self._start_time = time.time()
 
@@ -117,12 +115,6 @@ class GeneticAlgorithm:
         self.getBestAndAverage()
 
         while True:
-
-            # Save for every 100 generations
-            if self._generation % 100 == 0 and self._safe_save:
-                with open(self._save_filename, 'wb') as f:
-                    pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
-                    print("| SAVED |")
 
             # Elitism
             elite, population_left = self.elitism()
@@ -156,17 +148,18 @@ class GeneticAlgorithm:
             if self.terminationCondition():
                 self._total_training_time = time.time() - self._start_time
                 self.findBestIndividual()
-                if self._plot_best:
+                if self._plot_best and print:
                     self.plotBest()
-                self.printGenerationData()
-                if self._plot_fitness:
+                if print:
+                    self.printGenerationData()
+                if self._plot_fitness and print:
                     self.graph(2)
                 if self._cores > 1:
                     self.buryProcesses()
                 return
 
             # Information is printed
-            if self._generation_for_print and self._generation % self._generation_for_print == 0:
+            if self._generation_for_print and self._generation % self._generation_for_print == 0 and print:
                 if self._plot_best:
                     self.plotBest()
                 self.printGenerationData()
