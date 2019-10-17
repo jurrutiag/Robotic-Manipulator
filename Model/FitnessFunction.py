@@ -119,9 +119,15 @@ class FitnessFunction:
             force_2 = np.array([0, 0, -(mass[1] + mass[2]) * g])
             force_3 = np.array([0, 0, -mass[2] * g])
 
-            gravity_torque_1 = np.cross(mass_center1, force_1)
-            gravity_torque_2 = np.cross(mass_center2, force_2)
-            gravity_torque_3 = np.cross(mass_center3, force_3)
+            # gravity_torque_1 = np.cross(mass_center1, force_1)
+            # gravity_torque_2 = np.cross(mass_center2, force_2)
+            # gravity_torque_3 = np.cross(mass_center3, force_3)
+
+            # Cross product optimization:
+
+            gravity_torque_1 = [mass_center1[1] * force_1[2], - mass_center1[0] * force_1[2], 0]
+            gravity_torque_2 = [mass_center2[1] * force_2[2], - mass_center2[0] * force_2[2], 0]
+            gravity_torque_3 = [mass_center3[1] * force_3[2], - mass_center3[0] * force_3[2], 0]
 
             gravity_torques.append([0, gravity_torque_1, gravity_torque_2, gravity_torque_3])
 

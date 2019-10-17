@@ -93,10 +93,6 @@ class BlenderDriver:
                 A2.keyframe_insert(data_path="rotation_euler", index=-1)
                 A3.keyframe_insert(data_path="rotation_euler", index=-1)
 
-
-
-
-
 if __name__ == "__main__":
     import sys
 
@@ -106,18 +102,18 @@ if __name__ == "__main__":
     import json
 
     # np.random.seed(0)  # for testing
-
-    desired_position = [5, 5, 10]
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
-    models_batch_name = "meeting2extra"
+    models_batch_name = "json_test"
 
     with open("D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json") as f:
         best_individuals = json.load(f)
+
         for ind in best_individuals["Best Individuals"]:
             if ind["Animate"]:
                 ind["Animate"] = False
+                desired_position = ind["Info"]["desired_position"]
                 test_individual = ind["Genes"]
                 print(test_individual)
 

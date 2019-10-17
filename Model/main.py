@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     # Select a running option.
     options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling']
-    option = options[3]
+    option = options[0]
 
     # Cores for multiprocessing
     cores = 1
@@ -29,16 +29,16 @@ if __name__ == "__main__":
         "torques_error_ponderation": [0.0003],
         "pop_size": [100],
         "elitism_size": [10],
-        "generation_threshold": [50],
+        "generation_threshold": [100],
         "cores": [4],
         "generation_for_print": [10],
-        "mut_individual_prob": [0.05],
+        "mut_individual_prob": [0.5],
         "sampling_points": [10],
-        "desired_position": [[5, 5, 10]],
+        "desired_position": [[5, 5, 7]],
         "total_time": [5]
     }
 
-    model_repetition = 1
+    model_repetition = 5
 
     ## Execution
 

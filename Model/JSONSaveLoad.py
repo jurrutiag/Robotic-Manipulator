@@ -19,6 +19,7 @@ class JSONSaveLoad:
 
         if not os.path.exists(self._trained_models_dir):
             os.makedirs(self._trained_models_dir)
+            os.makedirs(self._trained_models_dir + "/Renders")
             os.makedirs(self._trained_models_dir + "/Graphs")
             os.makedirs(self._trained_models_dir + "/Graphs/Individuals")
             os.makedirs(self._trained_models_dir + "/Graphs/Torque")

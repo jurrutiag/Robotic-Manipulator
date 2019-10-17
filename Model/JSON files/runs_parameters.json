@@ -9,7 +9,7 @@
     "cores": 1,
     "pop_size": 150,
     "cross_individual_prob": 0.8,
-    "mut_individual_prob": 0.05,
+    "mut_individual_prob": 0.5,
     "cross_joint_prob": 0.25,
     "mut_joint_prob": 0.25,
     "pairing_prob": 0.5,
