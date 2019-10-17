@@ -3,7 +3,7 @@ import math
 
 class RoboticManipulator:
 
-    def __init__(self, dimensions, mass, angle_limits=([-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2])):
+    def __init__(self, dimensions, mass, angle_limits=([0, 2 * math.pi], [0, math.pi], [-math.pi / 2, math.pi / 2], [-math.pi / 2, math.pi / 2])):
 
         self._dimensions = dimensions
         self._mass = mass

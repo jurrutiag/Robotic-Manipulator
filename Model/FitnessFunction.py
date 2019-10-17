@@ -4,13 +4,15 @@ import math
 
 class FitnessFunction:
 
-    def __init__(self, manipulator, torques_ponderations, desired_position, sampling_points, total_time=5, distance_error_ponderation=1, torques_error_ponderation=1):
+    def __init__(self, manipulator, torques_ponderations, desired_position, sampling_points, total_time=5,
+                 distance_error_ponderation=1, torques_error_ponderation=1, velocity_error_ponderation=1):
 
         self._manipulator = manipulator
         self._torques_ponderations = torques_ponderations
         self._desired_position = desired_position
         self._distance_error_ponderation = distance_error_ponderation
         self._torques_error_ponderation = torques_error_ponderation
+        self._velocity_error_ponderation = velocity_error_ponderation
         self._delta_t = 1
 
         self._torque = 0
@@ -20,6 +22,12 @@ class FitnessFunction:
 
         positions = self.getPositions(individual)
         distance_error = np.linalg.norm(self._desired_position - positions[-1][3], ord=2)
+
+        if self._velocity_error_ponderation != 0:
+            angVelocities = self.getAngularVelocities(individual)
+            velocity_error = np.linalg.norm(angVelocities)
+        else:
+            velocity_error = 0
 
         if self._torques_error_ponderation != 0:
             angAccelerations = self.getAngularAccelerations(individual)
@@ -31,7 +39,7 @@ class FitnessFunction:
         else:
             torques_error = 0
 
-        fitness = 1 / (1 + self._torques_error_ponderation * torques_error + self._distance_error_ponderation * distance_error)
+        fitness = 1 / (1 + self._torques_error_ponderation * torques_error + self._distance_error_ponderation * distance_error + self._velocity_error_ponderation * velocity_error)
 
         individual.setFitness(fitness)
         individual.setTorque(torques_error)
@@ -53,6 +61,28 @@ class FitnessFunction:
             positions.append(thisPosition)
 
         return np.array(positions)
+
+    def getAngularVelocities(self, individual):
+        angles = individual.getGenes()
+
+        n_samples = len(angles)
+
+        velocities = []
+        for i, angle in enumerate(angles):
+            if i == 0:
+                xiM1 = angles[1]
+                xim1 = angle
+            elif i == n_samples - 1:
+                xiM1 = angle
+                xim1 = angles[n_samples - 2]
+            else:
+                xiM1 = angles[i + 1]
+                xim1 = angles[i - 1]
+
+            vel = (np.array(xiM1) - np.array(xim1)) / (2 * self._delta_t ** 2)
+            velocities.append(vel)
+
+        return np.array(velocities)
 
 
     def getAngularAccelerations(self, individual):

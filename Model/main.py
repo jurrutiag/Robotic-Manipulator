@@ -29,16 +29,16 @@ if __name__ == "__main__":
         "torques_error_ponderation": [0.0003],
         "pop_size": [100],
         "elitism_size": [10],
-        "generation_threshold": [100],
+        "generation_threshold": [2000],
         "cores": [4],
         "generation_for_print": [10],
         "mut_individual_prob": [0.5],
         "sampling_points": [10],
-        "desired_position": [[5, 5, 7]],
+        "desired_position": [[-5, -5, 7]],
         "total_time": [5]
     }
 
-    model_repetition = 5
+    model_repetition = 1
 
     ## Execution
 

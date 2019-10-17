@@ -16,7 +16,7 @@ class GeneticAlgorithm:
                  mut_individual_prob=0.5, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
                  sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=1000,
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
-                 torques_error_ponderation=0.01, distance_error_ponderation=1, rate_of_selection=0.3, elitism_size=10,
+                 torques_error_ponderation=0.0003, distance_error_ponderation=1, velocity_error_ponderation=0.1, rate_of_selection=0.3, elitism_size=10,
                  selection_method="rank", rank_probability=0.5, generation_for_print=10,
                  plot_fitness=True, plot_best=False, exponential_initialization=False, total_time=5):
 
@@ -62,7 +62,8 @@ class GeneticAlgorithm:
         self._fitness_function = FitnessFunction.FitnessFunction(self._manipulator, torques_ponderations,
                                                                  desired_position, sampling_points,
                                                                  total_time, distance_error_ponderation=distance_error_ponderation,
-                                                                 torques_error_ponderation=torques_error_ponderation)
+                                                                 torques_error_ponderation=torques_error_ponderation,
+                                                                 velocity_error_ponderation=velocity_error_ponderation)
 
         # Fitness Results
 
