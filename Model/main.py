@@ -15,7 +15,11 @@ if __name__ == "__main__":
 
     # Select a running option.
     options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling']
-    option = options[0]
+    option_string = input("Select one: Run All (1), Initialize Only (2), Profiling (3), Testing (Else)")
+    try:
+        option = options[int(option_string)]
+    except ValueError:
+        option = options[0]
 
     # Cores for multiprocessing
     cores = 1
