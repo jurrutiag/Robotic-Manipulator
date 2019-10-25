@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     ## Configurations
 
-    np.random.seed(0) # for testing
+    # np.random.seed(0) # for testing
 
     # Select a running option.
     options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling']
@@ -33,9 +33,11 @@ if __name__ == "__main__":
         "torques_error_ponderation": [0.0003],
         "pop_size": [100],
         "elitism_size": [10],
-        "generation_threshold": [100],
-        "pareto_dominance_selection": [False],
-        "cores": [1],
+        "generation_threshold": [1000],
+        "selection_method": ["pareto_tournament"],
+        "niche_sigma": [0.8],
+        "pareto_tournament_size": [3],
+        "cores": [4],
         "generation_for_print": [10],
         "mut_individual_prob": [0.5],
         "sampling_points": [10],

@@ -7,16 +7,18 @@ import time
 import pickle
 from PrintModule import PrintModule
 import multiprocessing
+import pygmo as pg
+from mpl_toolkits.mplot3d import Axes3D
 
 
 class GeneticAlgorithm:
 
-    def __init__(self, manipulator, desired_position, print_module=None, cores=1, pop_size=100, pareto_dominance_selection=False, cross_individual_prob=0.6,
+    def __init__(self, manipulator, desired_position, print_module=None, cores=1, pop_size=100, cross_individual_prob=0.6,
                  mut_individual_prob=0.5, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
                  sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=1000,
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
                  torques_error_ponderation=0.0003, distance_error_ponderation=1, velocity_error_ponderation=0.1, rate_of_selection=0.3, elitism_size=10,
-                 selection_method="rank", rank_probability=0.5, generation_for_print=10,
+                 selection_method="rank", rank_probability=0.5, pareto_tournament_size=5, niche_sigma=100, generation_for_print=10,
                  plot_fitness=True, plot_best=False, exponential_initialization=False, total_time=5):
 
         # Algorithm info for save
@@ -39,6 +41,8 @@ class GeneticAlgorithm:
 
         self._elitism_size = elitism_size
         self._rate_of_selection = rate_of_selection
+        self._pareto_tournament_size = pareto_tournament_size
+        self._niche_sigma = niche_sigma
         self._selection_method = selection_method
         self._rank_probability = rank_probability
         self._generation_for_print = generation_for_print
@@ -59,7 +63,6 @@ class GeneticAlgorithm:
 
         # Fitness Function
 
-        self._pareto_dominance_selection = pareto_dominance_selection
         self._fitness_function = FitnessFunction.FitnessFunction(manipulator=self._manipulator,
                                                                  torques_ponderations=torques_ponderations,
                                                                  desired_position=desired_position,
@@ -119,6 +122,8 @@ class GeneticAlgorithm:
         self.getBestAndAverage()
 
         while True:
+            if self._generation % 20 == 0:
+                self.plotParetoFrontier()
             # Selection of parents
             self.selection()
 
@@ -208,13 +213,7 @@ class GeneticAlgorithm:
 
         assert(len(out_list) == self._pop_size or len(out_list) == self._pop_size - self._elitism_size)
 
-        if not self._pareto_dominance_selection:
-            self._fitness_function.setPonderatedFitness(out_list)
-        else:
-            self._fitness_function.setParetoDominanceFitness(out_list)
-
         return out_list
-
 
     def singleCoreFitness(self, population):
         for individual in population:
@@ -247,8 +246,10 @@ class GeneticAlgorithm:
                         ind_genes[i, h] = minAngle  # + (minAngle - ind_genes[i,h])
 
     def sortByFitness(self, population):
-        reverse = not self._pareto_dominance_selection
-        return sorted(population, key=lambda x: x.getFitness(), reverse=reverse)
+        return sorted(population, key=lambda x: x.getFitness(), reverse=True)
+
+    def sharingFunction(self, distance):
+        return (1 - distance/self._niche_sigma) if distance < self._niche_sigma else 0
 
     def selection(self):
 
@@ -272,7 +273,61 @@ class GeneticAlgorithm:
             for fitness in fitness_values:
                 probabilities.append(fitness / total)
 
-            self._parents = np.random.choice(self._population, size=(amount_of_parents - self._elitism_size), p=probabilities)
+            self._parents = np.random.choice(self._population, size=amount_of_parents, p=probabilities)
+
+        elif self._selection_method == "pareto_tournament":
+
+            pop_left = list(range(self._pop_size))
+            pop_fitnesses = np.array([ind.getMultiFitness() for ind in self._population])
+            pop_fitnesses_normalized = (pop_fitnesses - np.mean(pop_fitnesses, axis=0)) / np.std(pop_fitnesses)
+
+            for i in range(amount_of_parents):
+                len_pop_left = len(pop_left)
+
+                # Random selection of two individuals
+                ind_1_index = pop_left.pop(np.random.randint(len_pop_left))
+                ind_2_index = pop_left.pop(np.random.randint(len_pop_left - 1))
+
+                ind_1 = self._population[ind_1_index]
+                ind_2 = self._population[ind_2_index]
+
+                ind_1_mfitness = pop_fitnesses_normalized[ind_1_index]
+                ind_2_mfitness = pop_fitnesses_normalized[ind_2_index]
+
+                # Random sampling
+                sampled_group_indexes = np.random.choice(pop_left, size=self._pareto_tournament_size, replace=False)
+                sampled_group = [pop_fitnesses_normalized[s] for s in sampled_group_indexes]
+
+                ind_1_dominates = np.all([pg.pareto_dominance(ind_1_mfitness, samp) for samp in sampled_group])
+                ind_2_dominates = np.all([pg.pareto_dominance(ind_2_mfitness, samp) for samp in sampled_group])
+
+                # Sharing
+                if ind_1_dominates == ind_2_dominates:
+                    # Calculation of niche size
+
+                    niche_ind_1 = sum(
+                        [self.sharingFunction(np.linalg.norm(ind_1_mfitness - ind_mfitness)) for ind_mfitness in
+                         np.delete(pop_fitnesses_normalized, ind_1_index)])
+                    niche_ind_2 = sum(
+                        [self.sharingFunction(np.linalg.norm(ind_2_mfitness - ind_mfitness)) for ind_mfitness in
+                         np.delete(pop_fitnesses_normalized, ind_2_index)])
+
+                    corrected_fit_1 = np.divide(ind_1.getFitness(), niche_ind_1)
+                    corrected_fit_2 = np.divide(ind_2.getFitness(), niche_ind_2)
+
+                    if corrected_fit_1 > corrected_fit_2:
+                        self._parents.append(ind_1)
+                        pop_left.append(ind_2_index)
+                    else:
+                        self._parents.append(ind_2)
+                        pop_left.append(ind_1_index)
+
+                elif ind_1_dominates:
+                    self._parents.append(ind_1)
+                    pop_left.append(ind_2_index)
+                elif ind_2_dominates:
+                    self._parents.append(ind_2)
+                    pop_left.append(ind_1_index)
 
         # Rank is the default in case of misspelling
         else:
@@ -284,7 +339,7 @@ class GeneticAlgorithm:
                 # P_i = P_c (1 - P_c) ^ (i - 1), P_n = (1 - P_c) ^ (n - 1)
                 probabilities.append((self._rank_probability if i != self._pop_size else 1) * (1 - self._rank_probability) ** (i - 1))
 
-            self._parents = np.random.choice(self._population, size=(amount_of_parents - self._elitism_size), p=probabilities)
+            self._parents = np.random.choice(self._population, size=amount_of_parents, p=probabilities)
 
     def crossover(self, ind1, ind2):
 
@@ -322,7 +377,8 @@ class GeneticAlgorithm:
             if coinToss[i,j] < self._pairing_prob and i != j:
                 child1, child2 = self.crossover(self._parents[i], self._parents[j])
                 self._children.append(child1)
-                self._children.append(child2)
+                if len(self._children) < (self._pop_size - self._elitism_size):
+                    self._children.append(child2)
             j += 1
             if j == amount:
                 j = 0
@@ -472,6 +528,17 @@ class GeneticAlgorithm:
         for ang in np.transpose(best.getGenes()):
             plt.plot(ang)
         plt.show()
+
+    def plotParetoFrontier(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        f_distance, f_torque, f_velocity = zip(*[ind.getMultiFitness() for ind in self._population])
+        ax.scatter(f_distance, f_torque, f_velocity)
+        ax.set_xlim([0, 16])
+        ax.set_ylim([0, 8000])
+        ax.set_zlim([0, 6])
+        plt.show()
+
 
     def buryProcesses(self):
 
