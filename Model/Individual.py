@@ -5,8 +5,7 @@ class Individual:
     def __init__(self, genes, id=0):
         self._genes = genes
         self._fitness = None
-        self._torque = None
-        self._distance = None
+        self._multi_fitness = None
         self._id = id
 
     def getGenes(self):
@@ -17,6 +16,12 @@ class Individual:
 
     def getMutationProb(self):
         return self._mutation_prob
+
+    def getMultiFitness(self):
+        return self._multi_fitness
+
+    def setMultiFitness(self, multi_fitness):
+        self._multi_fitness = multi_fitness
 
     def getFitness(self):
         return self._fitness
@@ -33,14 +38,5 @@ class Individual:
     def getId(self):
         return self._id
 
-    def setTorque(self, torque):
-        self._torque = torque
-
-    def getTorque(self):
-        return self._torque
-
-    def setDistance(self, distance):
-        self._distance = distance
-
-    def getDistance(self):
-        return self._distance
+    def __str__(self):
+        return f"Individual {id(self)}, Fitness: {self._fitness}"

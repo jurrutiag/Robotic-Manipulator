@@ -4,7 +4,7 @@ import math
 
 class FitnessFunction:
 
-    def __init__(self, manipulator, torques_ponderations, desired_position, sampling_points, total_time=5,
+    def __init__(self, manipulator, desired_position, sampling_points, total_time=5, torques_ponderations=(1, 1, 1, 1),
                  distance_error_ponderation=1, torques_error_ponderation=1, velocity_error_ponderation=1):
 
         self._manipulator = manipulator
@@ -18,7 +18,7 @@ class FitnessFunction:
         self._torque = 0
         self._dist = 0
 
-    def evaluateFitness(self, individual):
+    def evaluateSeparateFitnesses(self, individual):
 
         positions = self.getPositions(individual)
         distance_error = np.linalg.norm(self._desired_position - positions[-1][3], ord=2)
@@ -39,11 +39,7 @@ class FitnessFunction:
         else:
             torques_error = 0
 
-        fitness = 1 / (1 + self._torques_error_ponderation * torques_error + self._distance_error_ponderation * distance_error + self._velocity_error_ponderation * velocity_error)
-
-        individual.setFitness(fitness)
-        individual.setTorque(torques_error)
-        individual.setDistance(distance_error)
+        individual.setMultiFitness(np.array([distance_error, torques_error, velocity_error]))
 
     #retorna posiciones cartesionas de las tres masas móviles del brazo
     def getPositions(self, individual):
@@ -188,4 +184,10 @@ class FitnessFunction:
 
         return np.array([sum(t_1_norm), sum(t_2_norm), sum(t_3_norm), sum(t_4_norm)])
 
+    def setPonderatedFitness(self, population):
+        for ind in population:
+            distance_error, torques_error, velocity_error = ind.getMultiFitness()
+            ind.setFitness(1 / (1 + self._torques_error_ponderation * torques_error + self._distance_error_ponderation * distance_error + self._velocity_error_ponderation * velocity_error))
 
+    def setParetoDominanceFitness(self, population):
+        pass

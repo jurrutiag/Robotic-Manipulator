@@ -66,11 +66,11 @@ class JSONSaveLoad:
             individuals_json = json.load(f)
             index = individuals_json["Index"]
 
-            fit_graphs, torque_graphs, dist_graphs = GA.getFitnessGraphs()[0]
+            fit_graphs, dist_graphs, torque_graphs = GA.getFitnessGraphs()[0]
 
             fit_graphs.savefig(self._trained_models_dir + "/Graphs/Fitness/fitness_graph_" + str(index))
-            torque_graphs.savefig(self._trained_models_dir + "/Graphs/Torque/torque_graph_" + str(index))
             dist_graphs.savefig(self._trained_models_dir + "/Graphs/Distance/distance_graph_" + str(index))
+            torque_graphs.savefig(self._trained_models_dir + "/Graphs/Torque/torque_graph_" + str(index))
 
             ind_graphs = GA.getIndividualsGraphs()
 

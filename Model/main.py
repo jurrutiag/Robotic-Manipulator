@@ -11,11 +11,11 @@ if __name__ == "__main__":
 
     ## Configurations
 
-    # np.random.seed(0) # for testing
+    np.random.seed(0) # for testing
 
     # Select a running option.
     options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling']
-    option_string = input("Select one: Run All (1), Initialize Only (2), Profiling (3), Testing (Else)")
+    option_string = input("Select one: Run All (1), Initialize Only (2), Profiling (3), Testing (Else): ")
     try:
         option = options[int(option_string)]
     except ValueError:
@@ -33,8 +33,9 @@ if __name__ == "__main__":
         "torques_error_ponderation": [0.0003],
         "pop_size": [100],
         "elitism_size": [10],
-        "generation_threshold": [2000],
-        "cores": [4],
+        "generation_threshold": [100],
+        "pareto_dominance_selection": [False],
+        "cores": [1],
         "generation_for_print": [10],
         "mut_individual_prob": [0.5],
         "sampling_points": [10],
