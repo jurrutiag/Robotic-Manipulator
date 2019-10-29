@@ -14,8 +14,8 @@ if __name__ == "__main__":
     # np.random.seed(0) # for testing
 
     # Select a running option.
-    options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling']
-    option_string = input("Select one: Run All (1), Initialize Only (2), Profiling (3), Testing (Else): ")
+    options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling', 'Render']
+    option_string = input("Select one: Run All (1), Initialize Only (2), Profiling (3), Render (4), Testing (Else): ")
     try:
         option = options[int(option_string)]
     except ValueError:
@@ -30,19 +30,32 @@ if __name__ == "__main__":
 
     # Parameters to change on the json
     parameters_variations = {
-        "torques_error_ponderation": [0.0003],
-        "pop_size": [100],
-        "elitism_size": [10],
-        "generation_threshold": [1000],
-        "selection_method": ["pareto_tournament"],
-        "niche_sigma": [0.8],
-        "pareto_tournament_size": [3],
+        "desired_position": [[5, 5, 5]],
         "cores": [4],
-        "generation_for_print": [10],
+        "pop_size": [100],
+        "cross_individual_prob": [0.8],
         "mut_individual_prob": [0.5],
+        "cross_joint_prob": [0.25],
+        "mut_joint_prob": [0.25],
+        "pairing_prob": [0.5],
         "sampling_points": [10],
-        "desired_position": [[-5, -5, 7]],
-        "total_time": [5]
+        "torques_ponderations": [[1, 1, 1, 1]],
+        "generation_threshold": [100],
+        "fitness_threshold": [1],
+        "progress_threshold": [1],
+        "generations_progress_threshold": [50],
+        "distance_error_ponderation": [1],
+        "torques_error_ponderation": [1],
+        "velocity_error_ponderation": [0],
+        "elitism_size": [10],
+        "selection_method": ["rank"],
+        "rank_probability": [0.5],
+        "pareto_tournament_size": [3],
+        "niche_sigma": [0.8],
+        "generation_for_print": [10],
+        "exponential_initialization": [False],
+        "total_time": [5],
+        "individuals_to_display": [5]
     }
 
     model_repetition = 1
@@ -54,7 +67,8 @@ if __name__ == "__main__":
     # Run all
     if option in options[:2]:
         run_name = input("Enter the name for saving the run: ") if option == options[1] else 'json_test'
-        save_load_json = JSONSaveLoad(save_filename=run_name,
+        save_load_json = JSONSaveLoad(GA=GeneticAlgorithm(manipulator, [5, 5, 5]),
+                                      save_filename=run_name,
                                       parameters_variations=parameters_variations)
 
         save_load_json.loadParameters(model_repetition)
@@ -94,3 +108,16 @@ if __name__ == "__main__":
         GA = GeneticAlgorithm(manipulator, **default_parameters)
 
         cProfile.run('GA.runAlgorithm(print=False)', sort='cumtime')
+
+    # Rendering
+    elif option == options[4]:
+        import sys
+        sys.path.insert(1, '../Blender')
+        from RenderBlender import render
+        render()
+
+
+    import winsound
+    frequency = 2500  # Set Frequency To 2500 Hertz
+    duration = 1000  # Set Duration To 1000 ms == 1 second
+    winsound.Beep(frequency, duration)

@@ -2,7 +2,6 @@ import bpy
 from math import radians
 import numpy as np
 
-
 class BlenderDriver:
 
     def __init__(self, thetas, target, size, end_to_end=False, fps=30, seg=5):
@@ -96,7 +95,7 @@ class BlenderDriver:
 if __name__ == "__main__":
     import sys
 
-    sys.path.insert(1, 'D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model')
+    sys.path.insert(1, '../Model')
     import numpy as np
     import RoboticManipulator
     import json
@@ -106,27 +105,37 @@ if __name__ == "__main__":
     manipulator_mass = [1, 1, 1]
 
     models_batch_name = "json_test"
+    with open("../Blender/BlenderConfig.json") as f:
+        config = json.load(f)
+        gene = config["Genes to Animate"]
+        desired_position = config["Desired Position"]
 
-    with open("D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json") as f:
-        best_individuals = json.load(f)
+    manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
+    driver = BlenderDriver(gene, desired_position, manipulator_dimensions)
+    driver.execute()
 
-        for ind in best_individuals["Best Individuals"]:
-            if ind["Animate"]:
-                ind["Animate"] = False
-                desired_position = ind["Info"]["desired_position"]
-                test_individual = ind["Genes"]
-                print(test_individual)
-
-                manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
-
-                driver = BlenderDriver(test_individual, desired_position, manipulator_dimensions)
-
-                driver.execute()
-                break
-        else:
-            print("No individual to animate...")
-    with open(
-        "D:/Docs universidad/8vo Semestre/Inteligencia Computacional/Robotic Manipulator Project/Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json", 'w') as f:
-        json.dump(best_individuals, f)
+    #
+    # with open("../Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json") as f:
+    #     best_individuals = json.load(f)
+    #
+    #     for ind in best_individuals["Best Individuals"]:
+    #         if ind["Animate"]:
+    #             ind["Animate"] = False
+    #             desired_position = ind["Info"]["desired_position"]
+    #             test_individual = ind["Genes"][-1]
+    #             print(test_individual)
+    #
+    #             manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
+    #
+    #             driver = BlenderDriver(test_individual, desired_position, manipulator_dimensions)
+    #
+    #             driver.execute()
+    #             break
+    #     else:
+    #         print("No individual to animate...")
+    #         sys.exit(0)
+    # with open(
+    #     "../Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json", 'w') as f:
+    #     json.dump(best_individuals, f)
 
 

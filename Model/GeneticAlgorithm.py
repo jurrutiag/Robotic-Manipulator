@@ -19,7 +19,7 @@ class GeneticAlgorithm:
                  fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
                  torques_error_ponderation=0.0003, distance_error_ponderation=1, velocity_error_ponderation=0.1, rate_of_selection=0.3, elitism_size=10,
                  selection_method="rank", rank_probability=0.5, pareto_tournament_size=5, niche_sigma=100, generation_for_print=10,
-                 plot_fitness=True, plot_best=False, exponential_initialization=False, total_time=5):
+                 exponential_initialization=False, total_time=5, individuals_to_display=5):
 
         # Algorithm info for save
 
@@ -46,9 +46,9 @@ class GeneticAlgorithm:
         self._selection_method = selection_method
         self._rank_probability = rank_probability
         self._generation_for_print = generation_for_print
-        self._plot_best = plot_best
-        self._plot_fitness = plot_fitness
         self._exponential_initialization = exponential_initialization
+
+        self._individuals_to_display = (np.linspace(1, pop_size, individuals_to_display, dtype=int) if individuals_to_display >= 2 else [pop_size])
 
         # Algorithm variables
 
@@ -94,6 +94,7 @@ class GeneticAlgorithm:
         self._best_individual = None
         self._graphs_fitness = []
         self._graphs_individuals = []
+        self._best_individuals_list = []
 
         # MultiCore algorithm
 
@@ -112,6 +113,7 @@ class GeneticAlgorithm:
                 p.start()
 
     def runAlgorithm(self, print_data=True):
+
         self._start_time = time.time()
 
         # First generation gets created
@@ -121,9 +123,39 @@ class GeneticAlgorithm:
         self._population = self.evaluateFitness(self._population)
         self.getBestAndAverage()
 
+        self.angleCorrection()
+        self.findBestIndividual()
+
         while True:
+
+            if self._generation in self._individuals_to_display:
+                self.graphIndividual()
+
+            # Check for termination condition
+            if self.terminationCondition():
+                self._total_training_time = time.time() - self._start_time
+                self.findBestIndividual()
+
+                # Print last information on the terminal
+                if print_data:
+                    self.printGenerationData()
+
+                self.graph(2)
+
+                # Bury the processes
+                if self._cores > 1:
+                    self.buryProcesses()
+
+                return
+
+            # Information is printed on the terminal
+            if self._generation_for_print and self._generation % self._generation_for_print == 0 and print_data:
+                self.printGenerationData()
+
             if self._generation % 20 == 0:
-                self.plotParetoFrontier()
+                #self.plotParetoFrontier()
+                pass
+
             # Selection of parents
             self.selection()
 
@@ -145,28 +177,8 @@ class GeneticAlgorithm:
             # Correct angles out of the range
             self.angleCorrection()
 
-            # Check for termination condition
-            if self.terminationCondition():
-                self._total_training_time = time.time() - self._start_time
-                self.findBestIndividual()
-                if self._plot_best and print_data:
-                    self.plotBest()
-                if print_data:
-                    self.printGenerationData()
-                if self._plot_fitness and print_data:
-                    self.graph(2)
-                if self._cores > 1:
-                    self.buryProcesses()
-                return
-
-            # Information is printed
-            if self._generation_for_print and self._generation % self._generation_for_print == 0 and print_data:
-                if self._plot_best:
-                    self.plotBest()
-                self.printGenerationData()
-
             self.findBestIndividual()
-            self.graphIndividual()
+
 
     def initialization(self):
 
@@ -253,12 +265,13 @@ class GeneticAlgorithm:
 
     def selection(self):
 
+        sorted_pop = self.sortByFitness(self._population)
+
         # Elitism
         if self._elitism_size > 0:
-            sorted_pop = self.sortByFitness(self._population)
             self._elite = sorted_pop[:self._elitism_size]
 
-        amount_of_parents = int(self._rate_of_selection * len(self._population))
+        amount_of_parents = int(self._rate_of_selection * self._pop_size)
 
         if self._selection_method == "fitness_proportional":
 
@@ -277,7 +290,7 @@ class GeneticAlgorithm:
 
         elif self._selection_method == "pareto_tournament":
 
-            pop_left = list(range(self._pop_size))
+            pop_left = list(range(len(self._population)))
             pop_fitnesses = np.array([ind.getMultiFitness() for ind in self._population])
             pop_fitnesses_normalized = (pop_fitnesses - np.mean(pop_fitnesses, axis=0)) / np.std(pop_fitnesses)
 
@@ -332,12 +345,13 @@ class GeneticAlgorithm:
         # Rank is the default in case of misspelling
         else:
             probabilities = []
+            self._population = sorted_pop[self._elitism_size:]
 
             for i, ind in enumerate(self._population):
                 i += 1 # Starts from one
 
                 # P_i = P_c (1 - P_c) ^ (i - 1), P_n = (1 - P_c) ^ (n - 1)
-                probabilities.append((self._rank_probability if i != self._pop_size else 1) * (1 - self._rank_probability) ** (i - 1))
+                probabilities.append((self._rank_probability if i != len(self._population) else 1) * (1 - self._rank_probability) ** (i - 1))
 
             self._parents = np.random.choice(self._population, size=amount_of_parents, p=probabilities)
 
@@ -429,7 +443,7 @@ class GeneticAlgorithm:
 
     def terminationCondition(self):
         best_case_np = np.array(self._best_case)
-        generationLimitCondition = self._generation > self._generation_threshold
+        generationLimitCondition = self._generation >= self._generation_threshold
         bestIndividualCondition = best_case_np[len(self._best_case) - 1,0] > self._fitness_threshold
         # progressCondition = self._best_case[len(self._best_case) - 1 - self._generations_progress_threshold] - self._best_case[len(self._best_case) - 1] < self._progress_threshold
         progressCondition = False
@@ -492,19 +506,18 @@ class GeneticAlgorithm:
         self._graphs_fitness.append([fig_fitness, fig_distancia, fig_torque])
 
     def graphIndividual(self):
-        if self._generation == self._generation_threshold or self._generation % (round(self._generation_threshold/3)) == 0:
-            fig_best_individual, ax_best_individual = plt.subplots(ncols=1, nrows=1)
+        fig_best_individual, ax_best_individual = plt.subplots(ncols=1, nrows=1)
 
-            for ang in np.transpose(self._best_individual.getGenes()):
-                ax_best_individual.plot(ang)
+        for ang in np.transpose(self._best_individual.getGenes()):
+            ax_best_individual.plot(ang)
 
-            ax_best_individual.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
-            ax_best_individual.set_title("Mejor individuo")
-            ax_best_individual.set_xlabel("Unidad de Tiempo")
-            ax_best_individual.set_ylabel("Ángulo [rad]")
-            # plt.show()
-            self._graphs_individuals.append([fig_best_individual, self._generation])
-
+        ax_best_individual.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
+        ax_best_individual.set_title("Mejor individuo")
+        ax_best_individual.set_xlabel("Unidad de Tiempo")
+        ax_best_individual.set_ylabel("Ángulo [rad]")
+        # plt.show()
+        self._graphs_individuals.append([fig_best_individual, self._generation])
+        self._best_individuals_list.append([self._best_individual.getGenes().tolist(), self._generation])
 
     def printGenerationData(self):
         t = time.time() - self._start_time
@@ -560,6 +573,9 @@ class GeneticAlgorithm:
     def getBestIndividual(self):
         return self._best_individual
 
+    def getBestIndividualsList(self):
+        return self._best_individuals_list
+
     def getbestCase(self):
         return self._best_case
 
@@ -577,3 +593,6 @@ class GeneticAlgorithm:
 
     def getGeneration(self):
         return self._generation
+
+    def getDefaults(self):
+        return self._all_info

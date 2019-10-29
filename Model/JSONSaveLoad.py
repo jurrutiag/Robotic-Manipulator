@@ -7,11 +7,10 @@ import matplotlib.pyplot as plt
 
 class JSONSaveLoad:
 
-    json_config_folder = "JSON files"
-    prev_parameters_dir = json_config_folder + "/runs_parameters.json"
-    quick_models_dir = json_config_folder + "/quick_models.json"
+    def __init__(self, GA, save_filename, parameters_variations={}):
 
-    def __init__(self, save_filename, parameters_variations={}):
+        # Genetic Algorithm
+        self._GA = GA
 
         # Filenames
         self._save_filename = save_filename
@@ -35,30 +34,27 @@ class JSONSaveLoad:
         self._runs = None
 
     def loadParameters(self, repetitions=1):
-        if self.prev_parameters_dir:
-            runs = []
+        runs = []
 
-            default_parameters = self.loadDefaults()
+        default_parameters = self._GA.getDefaults()
 
-            keys, values = zip(*self._parameters_variations.items())
+        keys, values = zip(*self._parameters_variations.items())
 
-            for v in itertools.product(*values):
+        for v in itertools.product(*values):
 
-                run = default_parameters.copy()
-                run_change = dict(zip(keys, v))
-                for key, val in run_change.items():
-                    run[key] = val
-                runs.append(run)
-            final_runs = [r for r in runs for i in range(repetitions)]
+            run = default_parameters.copy()
+            run_change = dict(zip(keys, v))
+            for key, val in run_change.items():
+                run[key] = val
+            runs.append(run)
+        final_runs = [r for r in runs for i in range(repetitions)]
 
-            self._runs = final_runs
+        self._runs = final_runs
 
     def getRuns(self):
         return self._runs
 
-    def saveJson(self, GA, quick=False):
-
-        json_filename = self.quick_models_dir if quick else self._save_filename
+    def saveJson(self, GA):
 
         new_individual = {}
 
@@ -77,6 +73,7 @@ class JSONSaveLoad:
             for graph in ind_graphs:
                 if not os.path.exists(self._trained_models_dir + f"/Graphs/Individuals/{index}"):
                     os.makedirs(self._trained_models_dir + f"/Graphs/Individuals/{index}")
+
                 graph[0].savefig(self._trained_models_dir + f"/Graphs/Individuals/{index}/best_individual_graph_" + str(index) + "_gen_" + str(graph[1]))
 
             plt.close('all')
@@ -84,7 +81,7 @@ class JSONSaveLoad:
             best_individuals = individuals_json["Best Individuals"]
             new_individual["ID"] = index
             individuals_json["Index"] += 1
-            new_individual["Genes"] = GA.getBestIndividual().getGenes().tolist()
+            new_individual["Genes"] = GA.getBestIndividualsList()
             new_individual["Info"] = GA.getAlgorithmInfo()
             new_individual["Time of Training"] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             new_individual["Total Training Time"] = GA.getTrainingTime()
@@ -96,10 +93,3 @@ class JSONSaveLoad:
         with open(self._trained_models_dir + "/" + self._save_filename + ".json", 'w') as f:
             json.dump(individuals_json, f)
 
-    @staticmethod
-    def loadDefaults():
-        with open(JSONSaveLoad.prev_parameters_dir, 'rb') as f:
-            parameters = json.load(f)
-            default_parameters = parameters["Default"]
-
-        return default_parameters
