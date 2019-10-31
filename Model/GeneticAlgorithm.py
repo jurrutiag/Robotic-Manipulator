@@ -323,6 +323,8 @@ class GeneticAlgorithm:
                 population = np.delete(population, chosen_indexes)
 
             # self._parents = np.random.choice(self._population, size=fitness_propotional_parents, p=probabilities)
+            assert (len(
+                self._parents) == fitness_propotional_parents)
 
         if pareto_tournament_parents > 0:
 
@@ -382,7 +384,7 @@ class GeneticAlgorithm:
                     self._parents.append(ind_2)
                     pop_left.append(ind_1_index)
 
-            assert (len(population) == self._pop_size - fitness_propotional_parents - pareto_tournament_parents and len(
+            assert (len(
                 self._parents) == fitness_propotional_parents + pareto_tournament_parents)
         # Rank
         if rank_parents > 0:
@@ -403,6 +405,8 @@ class GeneticAlgorithm:
                 population = np.delete(population, chosen_indexes)
 
             # self._parents = np.random.choice(population, size=rank_parents, p=probabilities)
+            assert (len(
+                self._parents) == fitness_propotional_parents + pareto_tournament_parents + rank_parents)
 
         # Random
         if random_parents > 0:
@@ -412,6 +416,9 @@ class GeneticAlgorithm:
                 self._parents.append(population[index])
             if not parents_replacing:
                 population = np.delete(population, chosen_indexes)
+
+            assert (len(
+                self._parents) == fitness_propotional_parents + pareto_tournament_parents + rank_parents + random_parents)
 
 
     def crossover(self, ind1, ind2):
