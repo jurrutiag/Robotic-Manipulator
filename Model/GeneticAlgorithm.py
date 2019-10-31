@@ -13,13 +13,35 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class GeneticAlgorithm:
 
-    def __init__(self, manipulator, desired_position, print_module=None, cores=1, pop_size=100, cross_individual_prob=0.6,
-                 mut_individual_prob=0.5, cross_joint_prob=0.5, mut_joint_prob=0.5, pairing_prob=0.5,
-                 sampling_points=20, torques_ponderations=(1, 1, 1, 1), generation_threshold=1000,
-                 fitness_threshold=0.8, progress_threshold=1, generations_progress_threshold=50,
-                 torques_error_ponderation=0.0003, distance_error_ponderation=1, velocity_error_ponderation=0.1, rate_of_selection=0.3, elitism_size=10,
-                 selection_method="rank", rank_probability=0.5, pareto_tournament_size=5, niche_sigma=100, generation_for_print=10,
-                 exponential_initialization=False, total_time=5, individuals_to_display=5):
+    def __init__(self, manipulator,
+                 desired_position,
+                 print_module=None,
+                 cores=1,
+                 pop_size=100,
+                 cross_individual_prob=0.6,
+                 mut_individual_prob=0.5,
+                 cross_joint_prob=0.5,
+                 mut_joint_prob=0.5,
+                 pairing_prob=0.5,
+                 sampling_points=20,
+                 torques_ponderations=(1, 1, 1, 1),
+                 generation_threshold=1000,
+                 fitness_threshold=0.8,
+                 progress_threshold=1,
+                 generations_progress_threshold=50,
+                 torques_error_ponderation=0.0003,
+                 distance_error_ponderation=1,
+                 velocity_error_ponderation=0.1,
+                 rate_of_selection=0.3,
+                 elitism_size=10,
+                 selection_method=[0, 1, 0, 0],
+                 rank_probability=0.5,
+                 pareto_tournament_size=5,
+                 niche_sigma=100,
+                 generation_for_print=10,
+                 exponential_initialization=False,
+                 total_time=5,
+                 individuals_to_display=5):
 
         # Algorithm info for save
 
@@ -43,12 +65,13 @@ class GeneticAlgorithm:
         self._rate_of_selection = rate_of_selection
         self._pareto_tournament_size = pareto_tournament_size
         self._niche_sigma = niche_sigma
+        assert(sum(selection_method) == 1)
         self._selection_method = selection_method
         self._rank_probability = rank_probability
         self._generation_for_print = generation_for_print
         self._exponential_initialization = exponential_initialization
 
-        self._individuals_to_display = (np.linspace(1, pop_size, individuals_to_display, dtype=int) if individuals_to_display >= 2 else [pop_size])
+        self._individuals_to_display = (np.linspace(1, generation_threshold, individuals_to_display, dtype=int) if individuals_to_display >= 2 else [pop_size])
 
         # Algorithm variables
 
@@ -88,6 +111,7 @@ class GeneticAlgorithm:
         # Algorithm timing, resource measure and prints
 
         self._print_module = print_module if print_module is not None else PrintModule()
+        self._total_training_time = None
 
         # Final Results
 
@@ -156,6 +180,7 @@ class GeneticAlgorithm:
                 #self.plotParetoFrontier()
                 pass
 
+
             # Selection of parents
             self.selection()
 
@@ -178,7 +203,6 @@ class GeneticAlgorithm:
             self.angleCorrection()
 
             self.findBestIndividual()
-
 
     def initialization(self):
 
@@ -214,13 +238,13 @@ class GeneticAlgorithm:
 
     def evaluateFitness(self, population):
         split_population = np.array_split(population, self._cores)
+
         for mini_pop in split_population[:-1]:
             self._in_queue.put(mini_pop)
 
         out_list = self.singleCoreFitness(split_population[-1])
 
         for i in range(self._cores - 1):
-            # print(self._out_queue.get())
             out_list = np.concatenate((out_list, self._out_queue.get()))
 
         assert(len(out_list) == self._pop_size or len(out_list) == self._pop_size - self._elitism_size)
@@ -246,10 +270,11 @@ class GeneticAlgorithm:
         for ind in self._population:
             ind_genes = ind.getGenes()
 
-            for i in range(ind_genes.shape[0]):
-                for h in range(ind_genes.shape[1]):
-                    maxAngle = angle_limits[h][1]
-                    minAngle = angle_limits[h][0]
+            for h in range(ind_genes.shape[1]):
+                maxAngle = angle_limits[h][1]
+                minAngle = angle_limits[h][0]
+
+                for i in range(ind_genes.shape[0]):
 
                     if ind_genes[i, h] > maxAngle:
                         ind_genes[i, h] = maxAngle  # - (ind_genes[i, h] - maxAngle)
@@ -265,6 +290,7 @@ class GeneticAlgorithm:
 
     def selection(self):
 
+        parents_replacing = True
         sorted_pop = self.sortByFitness(self._population)
 
         # Elitism
@@ -273,42 +299,56 @@ class GeneticAlgorithm:
 
         amount_of_parents = int(self._rate_of_selection * self._pop_size)
 
-        if self._selection_method == "fitness_proportional":
+        fitness_propotional_parents, pareto_tournament_parents, rank_parents, random_parents = self.percentagesToValues(amount_of_parents, self._selection_method)
+
+        assert(fitness_propotional_parents + pareto_tournament_parents + rank_parents + random_parents == amount_of_parents)
+
+        np.random.shuffle(sorted_pop[:])
+
+        population = sorted_pop
+
+        if fitness_propotional_parents > 0:
 
             # Probabilities of selection for each individual is calculated
-            fitness_values = []
-            for individual in self._population:
-                fitness_values.append(individual.getFitness())
+            fitness_values = [ind.getFitness() for ind in population]
 
             total = sum(fitness_values)
-            probabilities = []
+            probabilities = [fitness / total for fitness in fitness_values]
 
-            for fitness in fitness_values:
-                probabilities.append(fitness / total)
+            pop_indexes = range(len(population))
+            chosen_indexes = np.random.choice(pop_indexes, size=fitness_propotional_parents, p=probabilities, replace=parents_replacing)
+            for index in chosen_indexes:
+                self._parents.append(population[index])
+            if not parents_replacing:
+                population = np.delete(population, chosen_indexes)
 
-            self._parents = np.random.choice(self._population, size=amount_of_parents, p=probabilities)
+            # self._parents = np.random.choice(self._population, size=fitness_propotional_parents, p=probabilities)
 
-        elif self._selection_method == "pareto_tournament":
+        if pareto_tournament_parents > 0:
 
-            pop_left = list(range(len(self._population)))
-            pop_fitnesses = np.array([ind.getMultiFitness() for ind in self._population])
-            pop_fitnesses_normalized = (pop_fitnesses - np.mean(pop_fitnesses, axis=0)) / np.std(pop_fitnesses)
+            # List with individuals indexes
+            pop_left = list(range(len(population)))
+            pop_fitnesses = np.array([ind.getMultiFitness() for ind in population])
+            pop_fitnesses_normalized = (pop_fitnesses - np.mean(pop_fitnesses, axis=0)) / np.std(pop_fitnesses - np.mean(pop_fitnesses, axis=0))
 
-            for i in range(amount_of_parents):
+            for i in range(pareto_tournament_parents):
+                # Amount of population left
                 len_pop_left = len(pop_left)
 
-                # Random selection of two individuals
+                # Random selection of two individuals indexes
                 ind_1_index = pop_left.pop(np.random.randint(len_pop_left))
                 ind_2_index = pop_left.pop(np.random.randint(len_pop_left - 1))
 
-                ind_1 = self._population[ind_1_index]
-                ind_2 = self._population[ind_2_index]
+                # Get the actual individuals
+                ind_1 = population[ind_1_index]
+                ind_2 = population[ind_2_index]
 
+                # Get the normalized fitnesses of each individual
                 ind_1_mfitness = pop_fitnesses_normalized[ind_1_index]
                 ind_2_mfitness = pop_fitnesses_normalized[ind_2_index]
 
                 # Random sampling
-                sampled_group_indexes = np.random.choice(pop_left, size=self._pareto_tournament_size, replace=False)
+                sampled_group_indexes = np.random.choice(pop_left, size=self._pareto_tournament_size, replace=parents_replacing)
                 sampled_group = [pop_fitnesses_normalized[s] for s in sampled_group_indexes]
 
                 ind_1_dominates = np.all([pg.pareto_dominance(ind_1_mfitness, samp) for samp in sampled_group])
@@ -320,10 +360,10 @@ class GeneticAlgorithm:
 
                     niche_ind_1 = sum(
                         [self.sharingFunction(np.linalg.norm(ind_1_mfitness - ind_mfitness)) for ind_mfitness in
-                         np.delete(pop_fitnesses_normalized, ind_1_index)])
+                         np.delete(pop_fitnesses_normalized, ind_1_index, axis=0)])
                     niche_ind_2 = sum(
                         [self.sharingFunction(np.linalg.norm(ind_2_mfitness - ind_mfitness)) for ind_mfitness in
-                         np.delete(pop_fitnesses_normalized, ind_2_index)])
+                         np.delete(pop_fitnesses_normalized, ind_2_index, axis=0)])
 
                     corrected_fit_1 = np.divide(ind_1.getFitness(), niche_ind_1)
                     corrected_fit_2 = np.divide(ind_2.getFitness(), niche_ind_2)
@@ -342,18 +382,37 @@ class GeneticAlgorithm:
                     self._parents.append(ind_2)
                     pop_left.append(ind_1_index)
 
-        # Rank is the default in case of misspelling
-        else:
+            assert (len(population) == self._pop_size - fitness_propotional_parents - pareto_tournament_parents and len(
+                self._parents) == fitness_propotional_parents + pareto_tournament_parents)
+        # Rank
+        if rank_parents > 0:
             probabilities = []
-            self._population = sorted_pop[self._elitism_size:]
+            population = self.sortByFitness(population)
 
-            for i, ind in enumerate(self._population):
+            for i, ind in enumerate(population):
                 i += 1 # Starts from one
 
                 # P_i = P_c (1 - P_c) ^ (i - 1), P_n = (1 - P_c) ^ (n - 1)
-                probabilities.append((self._rank_probability if i != len(self._population) else 1) * (1 - self._rank_probability) ** (i - 1))
+                probabilities.append((self._rank_probability if i != len(population) else 1) * (1 - self._rank_probability) ** (i - 1))
 
-            self._parents = np.random.choice(self._population, size=amount_of_parents, p=probabilities)
+            pop_indexes = range(len(population))
+            chosen_indexes = np.random.choice(pop_indexes, size=rank_parents, p=probabilities, replace=parents_replacing)
+            for index in chosen_indexes:
+                self._parents.append(population[index])
+            if not parents_replacing:
+                population = np.delete(population, chosen_indexes)
+
+            # self._parents = np.random.choice(population, size=rank_parents, p=probabilities)
+
+        # Random
+        if random_parents > 0:
+            pop_indexes = range(len(population))
+            chosen_indexes = np.random.choice(pop_indexes, size=random_parents, replace=parents_replacing)
+            for index in chosen_indexes:
+                self._parents.append(population[index])
+            if not parents_replacing:
+                population = np.delete(population, chosen_indexes)
+
 
     def crossover(self, ind1, ind2):
 
@@ -379,7 +438,7 @@ class GeneticAlgorithm:
 
     def generateChildren(self):
         amount = len(self._parents)
-        coinToss = np.random.rand(amount,amount)
+        coinToss = np.random.rand(amount, amount)
         i = 0
         j = 0
         while len(self._children) < (self._pop_size - self._elitism_size):
@@ -550,8 +609,7 @@ class GeneticAlgorithm:
         ax.set_xlim([0, 16])
         ax.set_ylim([0, 8000])
         ax.set_zlim([0, 6])
-        plt.show()
-
+        fig.show()
 
     def buryProcesses(self):
 
@@ -596,3 +654,16 @@ class GeneticAlgorithm:
 
     def getDefaults(self):
         return self._all_info
+
+    @staticmethod
+    def percentagesToValues(total, percentages):
+        cum_perc = 0
+        cum_value = 0
+        values = []
+        for perc in percentages:
+            cum_perc += perc
+            value = int(cum_perc * total) - cum_value
+            cum_value += value
+            values.append(value)
+
+        return values
