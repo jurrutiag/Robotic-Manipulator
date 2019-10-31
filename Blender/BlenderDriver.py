@@ -1,17 +1,18 @@
 import bpy
-from math import radians
-import numpy as np
+
 
 class BlenderDriver:
 
-    def __init__(self, thetas, target, size, end_to_end=False, fps=30, seg=5):
+    fps = 30
+
+    def __init__(self, thetas, target, size, end_to_end=False, seg=5):
         self._thetas = thetas
         self._target = target
         self._size = size
         self._dimension2scale = 1 / 2
         self._end_to_end = end_to_end
 
-        self._frame_jump = int(np.ceil(fps * seg / len(np.transpose(thetas)[0])))
+        self._frame_jump = int(np.ceil(BlenderDriver.fps * seg / len(np.transpose(thetas)[0])))
 
         self._a1_prev_theta = np.array([0, 0, 0])
         self._a2_prev_theta = np.array([0, 0, 0])
@@ -109,9 +110,10 @@ if __name__ == "__main__":
         config = json.load(f)
         gene = config["Genes to Animate"]
         desired_position = config["Desired Position"]
+        total_time = config["Total time"]
 
     manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
-    driver = BlenderDriver(gene, desired_position, manipulator_dimensions)
+    driver = BlenderDriver(gene, desired_position, manipulator_dimensions, seg=total_time)
     driver.execute()
 
     #

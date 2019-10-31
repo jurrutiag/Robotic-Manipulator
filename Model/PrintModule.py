@@ -3,8 +3,18 @@ import colorama
 
 class PrintModule:
 
-    def __init__(self):
-        self._positions = {"Current Information": (0, 5), "Quick Information": (6, 1), "Current Training": (7, 6), "Final Information": (14, 1)}
+    def __init__(self, current_info_len=5, quick_info_len=1, current_training_len=9, final_info_len=1):
+        self._positions = {}
+        index = 0
+        self._positions["Current Information"] = (index, current_info_len)
+        index += (current_info_len + 1)
+        self._positions["Quick Information"] = (index, quick_info_len)
+        index += quick_info_len
+        self._positions["Current Training"] = (index, current_training_len)
+        index += (current_training_len + 1)
+        self._positions["Final Information"] = (index, final_info_len)
+
+        # self._positions = {"Current Information": (0, 5), "Quick Information": (6, 1), "Current Training": (7, 6), "Final Information": (14, 1)}
         self._process = 1
         self._lock = None
 

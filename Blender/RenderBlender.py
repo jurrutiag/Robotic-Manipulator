@@ -8,7 +8,7 @@ def render():
     render_last = False if input("Render all individuals for each model (N: render last individual)? (Y/N): ") == "Y" else True
     render_all = True if input("Render all (N: render last model)? (Y/N): ") == "Y" else False
 
-    end_frame = 180
+    fps = 30
 
     with open(f"../Model/Trained Models/{render_model_name}/{render_model_name}.json") as f:
         the_json = json.load(f)
@@ -22,12 +22,16 @@ def render():
         genes = [ind["Genes"][-1]] if render_last else ind["Genes"]
         for gene in genes:
             with open("../Blender/BlenderConfig.json", "w") as f:
+                tot_time = ind["Info"]["total_time"]
                 blender_config["Desired Position"] = ind["Info"]["desired_position"]
+                blender_config["Total time"] = tot_time
                 blender_config["Genes to Animate"] = gene[0]
                 json.dump(blender_config, f)
             if not os.path.exists(f"../Model/Trained Models/Renders/{ind['ID']}"):
                 os.makedirs(f"../Model/Trained Models/Renders/{ind['ID']}")
             render_path = f"{render_model_name}/Renders/{ind['ID']}/individual_{ind['ID']}_gen_{gene[1]}_"
+            end_frame = fps * (tot_time + 1)
+
             renderWithPath(render_path, end_frame)
 
 

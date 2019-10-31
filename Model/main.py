@@ -49,7 +49,7 @@ if __name__ == "__main__":
         "velocity_error_ponderation": [0],
         "rate_of_selection": [0.3],
         "elitism_size": [5],
-        "selection_method": [[0, 0.6, 0, 0.4]],
+        "selection_method": [[0, 0.4, 0.4, 0.2]],
         "rank_probability": [0.5],
         "pareto_tournament_size": [3],
         "niche_sigma": [0.5],

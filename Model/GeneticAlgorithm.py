@@ -177,7 +177,7 @@ class GeneticAlgorithm:
                 self.printGenerationData()
 
             if self._generation % 20 == 0:
-                #self.plotParetoFrontier()
+                # self.plotParetoFrontier()
                 pass
 
 
@@ -420,7 +420,6 @@ class GeneticAlgorithm:
             assert (len(
                 self._parents) == fitness_propotional_parents + pareto_tournament_parents + rank_parents + random_parents)
 
-
     def crossover(self, ind1, ind2):
 
         mu = (self._sampling_points - 1) * np.random.random() + 1
@@ -467,7 +466,6 @@ class GeneticAlgorithm:
                 j = 0
                 i = 0
                 coinToss = np.random.rand(amount, amount)
-
 
     def mutation(self):
 
@@ -591,8 +589,11 @@ class GeneticAlgorithm:
         average_case_np = np.array(self._average_case)
 
         self._print_module.print("| Generation:                    %4.4d |\n" % (self._generation) +
-              "| Best Generation Fitness: %10.8f |\n" % (best_case_np[self._generation - 1,0]) +
-              "| Mean Generation Fitness: %10.8f |\n" % (average_case_np[self._generation - 1,0]) +
+              "| Best Generation Fitness: %10.8f |\n" % (best_case_np[self._generation - 1, 0]) +
+              "| Best Generation Dist. :  %10.8f |\n" % (best_case_np[self._generation - 1, 1]) +
+              "| Best Generation Torque:  %10f |\n" % (best_case_np[self._generation - 1, 2]) +
+              "| Best Generation Vel.:    %10.8f |\n" % (best_case_np[self._generation - 1, 3]) +
+              "| Mean Generation Fitness: %10.8f |\n" % (average_case_np[self._generation - 1, 0]) +
               "| Best Overall Fitness:    %10.8f |\n" % (max(best_case_np[:,0])) +
               "| Total time:                  %6.2f |\n" % (t) +
               "- - - - - - - - - - - - - - - - - - - -", position="Current Training")

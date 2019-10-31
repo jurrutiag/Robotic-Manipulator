@@ -87,6 +87,7 @@ class JSONSaveLoad:
             new_individual["Total Training Time"] = GA.getTrainingTime()
             new_individual["Last Generation"] = GA.getGeneration()
             new_individual["Fitness"] = GA.getBestIndividual().getFitness()
+            new_individual["Multi Fitness"] = GA.getBestIndividual().getMultiFitness().tolist()
             new_individual["Animate"] = False
             best_individuals.append(new_individual)
 
