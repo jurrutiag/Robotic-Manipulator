@@ -8,6 +8,7 @@ import pickle
 from PrintModule import PrintModule
 import multiprocessing
 import pygmo as pg
+import itertools
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -466,6 +467,18 @@ class GeneticAlgorithm:
                 j = 0
                 i = 0
                 coinToss = np.random.rand(amount, amount)
+        # parents_amount = len(self._parents)
+        # parents_combinations = itertools.product(range(parents_amount), range(parents_amount))
+        # parents_combinations_no_rep = [(p1, p2) for p1, p2 in parents_combinations if p1 > p2]
+        #
+        # pairs_of_parents_indexes = np.random.choice(len(parents_combinations_no_rep), size=int(np.ceil((self._pop_size - self._elitism_size) / 2)))
+        #
+        # for pair_index in pairs_of_parents_indexes:
+        #     pair = parents_combinations_no_rep[pair_index]
+        #     child1, child2 = self.crossover(self._parents[pair[0]], self._parents[pair[1]])
+        #     self._children.append(child1)
+        #     if len(self._children) < (self._pop_size - self._elitism_size):
+        #         self._children.append(child2)
 
     def mutation(self):
 
