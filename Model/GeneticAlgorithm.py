@@ -42,7 +42,8 @@ class GeneticAlgorithm:
                  generation_for_print=10,
                  exponential_initialization=False,
                  total_time=5,
-                 individuals_to_display=5):
+                 individuals_to_display=5,
+                 model_process_and_id=(1, 1)):
 
         # Algorithm info for save
 
@@ -50,6 +51,7 @@ class GeneticAlgorithm:
         del self._all_info["print_module"]
         del self._all_info["manipulator"]
         del self._all_info["self"]
+        del self._all_info["model_process_and_id"]
 
         # Algorithm parameters
 
@@ -137,6 +139,21 @@ class GeneticAlgorithm:
                 self._processes.append(p)
                 p.start()
 
+        # Information Display
+
+        self._info_queue = None
+        self._console_print = True
+        self._model_process_and_id = model_process_and_id
+        # self._console_info = console_info
+        # if not console_info:
+        #     self._info_queue = multiprocessing.Queue()
+        #     import sys
+        #     sys.path.insert(1, '../InfoDisplay')
+        #     from InformationWindow import runInfoDisplay
+        #     self._info_process = multiprocessing.Process(target=runInfoDisplay, args=(self._info_queue, ))
+        #     self._info_process.start()
+
+
     def runAlgorithm(self, print_data=True):
 
         self._start_time = time.time()
@@ -154,7 +171,8 @@ class GeneticAlgorithm:
         while True:
 
             if self._generation in self._individuals_to_display:
-                self.graphIndividual()
+                self._graphs_individuals.append(self.graphIndividual())
+                self._best_individuals_list.append([self._best_individual.getGenes().tolist(), self._generation])
 
             # Check for termination condition
             if self.terminationCondition():
@@ -165,17 +183,18 @@ class GeneticAlgorithm:
                 if print_data:
                     self.printGenerationData()
 
-                self.graph(2)
+                self._graphs_fitness.append(self.graph(2))
 
                 # Bury the processes
-                if self._cores > 1:
-                    self.buryProcesses()
+                self.buryProcesses()
 
                 return
 
             # Information is printed on the terminal
             if self._generation_for_print and self._generation % self._generation_for_print == 0 and print_data:
-                self.printGenerationData()
+                if self._console_print:
+                    self.printGenerationData()
+                self.updateInfo()
 
             if self._generation % 20 == 0:
                 # self.plotParetoFrontier()
@@ -580,7 +599,9 @@ class GeneticAlgorithm:
                                "Evolución del algoritmo genético", choice)
 
         # plt.show()
-        self._graphs_fitness.append([fig_fitness, fig_distancia, fig_torque])
+        return [fig_fitness, fig_distancia, fig_torque]
+
+        # self._graphs_fitness.append([fig_fitness, fig_distancia, fig_torque])
 
     def graphIndividual(self):
         fig_best_individual, ax_best_individual = plt.subplots(ncols=1, nrows=1)
@@ -592,9 +613,12 @@ class GeneticAlgorithm:
         ax_best_individual.set_title("Mejor individuo")
         ax_best_individual.set_xlabel("Unidad de Tiempo")
         ax_best_individual.set_ylabel("Ángulo [rad]")
+
         # plt.show()
-        self._graphs_individuals.append([fig_best_individual, self._generation])
-        self._best_individuals_list.append([self._best_individual.getGenes().tolist(), self._generation])
+
+        return [fig_best_individual, self._generation]
+        # self._graphs_individuals.append([fig_best_individual, self._generation])
+
 
     def printGenerationData(self):
         t = time.time() - self._start_time
@@ -639,6 +663,29 @@ class GeneticAlgorithm:
 
         for p in self._processes:
             p.join()
+
+    def setInfoQueue(self, queue):
+        self._info_queue = queue
+        self._info_queue.put({"Defaults": self._all_info, "model": self._model_process_and_id})
+        self._console_print = False
+
+    def updateInfo(self):
+        if self._info_queue is not None:
+            fitness_graph, f2, f3 = self.graph(2)
+            plt.close(f2)
+            plt.close(f3)
+
+            info = {
+                "model": self._model_process_and_id,
+                "generation": self._generation,
+                "best_multi_fitness": self._best_case[-1][1:],
+                "best_fitness": self._best_case[-1][0],
+                "mean_fitness": self._average_case[-1][0],
+                "time_elapsed": time.time() - self._start_time,
+                "fitness_graph": fitness_graph,
+                "individual_graph": self.graphIndividual()[0]
+            }
+            self._info_queue.put(info)
 
     def getAlgorithmInfo(self):
         return self._all_info

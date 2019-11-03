@@ -1,0 +1,199 @@
+<BackgroundColor@Widget>
+    background_color: 1, 1, 1, 1
+    canvas.before:
+        Color:
+            rgba: root.background_color
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<BackgroundLabel@Label+BackgroundColor>
+    background_color: 1, 0, 0, 0
+
+<SeparatorY@Widget>:
+    id: separator
+    size_hint_y: None
+    height: 6
+    thickness: 2
+    canvas:
+        Color:
+            rgb: .24, .65, .94
+        Rectangle:
+            pos: self.pos[0], separator.center_y
+            size: separator.width, self.thickness
+
+<SeparatorX@Widget>:
+    id: separator
+    size_hint_x: None
+    width: 2
+    thickness: 2
+    canvas:
+        Color:
+            rgb: .24, .65, .94
+        Rectangle:
+            pos: separator.center_x, self.pos[1]
+            size: self.thickness, separator.height
+
+[SmallYSeparator@Widget]:
+    id: separator
+    size_hint_y: None
+    height: 0.5
+    thickness: 0.5
+    canvas:
+        Color:
+            rgb: .5, .5, .5
+        Rectangle:
+            pos: self.pos[0], separator.center_y
+            size: separator.width, self.thickness
+
+[TabWithInfo@TabbedPanelItem]:
+
+    size: root.width, root.height
+    pos: 0, 0
+    process: ctx.process
+    text: ctx.tab_name
+
+    GridLayout:
+        cols: 3
+
+        GridLayout:
+            cols: 1
+            size_hint: 0.4, 1
+
+            GridLayout:
+                cols: 2
+                size_hint: 1, 0.1
+
+                Button:
+                    text: "  Graph\n/params"
+                    id: toggle_button
+                    size_hint: 0.4, 1
+
+                BackgroundLabel:
+                    text: "Model Parameters:"
+
+
+            SeparatorY:
+
+            GridLayout:
+                cols:2
+                id: parameters_layout
+
+        SeparatorX:
+
+        GridLayout:
+            cols: 1
+
+            BackgroundLabel:
+                text: "Model Evolution:"
+                size_hint: 1, 0.1
+
+            SeparatorY:
+
+            GridLayout:
+                cols: 2
+                id: evolution_layout
+
+                BackgroundLabel:
+                    text: "Model: "
+                    size_hint: 0.4, 1
+
+                BackgroundLabel:
+                    id: model_label
+                    background_color: 1,1,1,1
+                    color: 0, 0, 0, 1
+
+                SmallYSeparator:
+                    size_hint_x: 0.4
+                SmallYSeparator:
+
+                BackgroundLabel:
+                    text: "Generation: "
+                    size_hint: 0.4, 1
+
+                BackgroundLabel:
+                    id: generation_label
+                    background_color: 1,1,1,1
+                    color: 0, 0, 0, 1
+
+                SmallYSeparator:
+                    size_hint_x: 0.4
+                SmallYSeparator:
+
+
+                GridLayout:
+                    cols: 2
+                    BackgroundLabel:
+                        text: "Best: "
+                        size_hint: 0.4, 1
+
+                    GridLayout:
+                        cols: 1
+                        BackgroundLabel:
+                            text: "Fitness Value: "
+                            background_color: 0.5,0.5,0.5,1
+                        BackgroundLabel:
+                            text: "Distance: "
+                            background_color: 0.5,0.5,0.5,1
+
+                        BackgroundLabel:
+                            text: "Torque: "
+                            background_color: 0.5,0.5,0.5,1
+
+                        BackgroundLabel:
+                            text: "Velocity: "
+                            background_color: 0.5,0.5,0.5,1
+
+
+                GridLayout:
+                    cols: 1
+                    BackgroundLabel:
+                        id: fitness_label
+                        background_color: 1,1,1,1
+                        color: 0, 0, 0, 1
+
+
+                    BackgroundLabel:
+                        id: distance_label
+                        background_color: 1,1,1,1
+                        color: 0, 0, 0, 1
+
+
+                    BackgroundLabel:
+                        id: torque_label
+                        background_color: 1,1,1,1
+                        color: 0, 0, 0, 1
+
+
+                    BackgroundLabel:
+                        id: velocity_label
+                        background_color: 1,1,1,1
+                        color: 0, 0, 0, 1
+
+                SmallYSeparator:
+                    size_hint_x: 0.4
+                SmallYSeparator:
+
+                BackgroundLabel:
+                    text: "Mean Fitness: "
+                    size_hint: 0.4, 1
+                BackgroundLabel:
+                    id: mean_fitness_label
+                    background_color: 1,1,1,1
+                    color: 0, 0, 0, 1
+
+                SmallYSeparator:
+                    size_hint_x: 0.4
+                SmallYSeparator:
+
+                BackgroundLabel:
+                    text: "Time Elapsed: "
+                    size_hint: 0.4, 1
+                BackgroundLabel:
+                    id: time_label
+                    background_color: 1,1,1,1
+                    color: 0, 0, 0, 1
+
+                SmallYSeparator:
+                    size_hint_x: 0.4
+                SmallYSeparator:

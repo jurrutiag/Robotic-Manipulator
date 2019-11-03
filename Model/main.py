@@ -24,6 +24,9 @@ if __name__ == "__main__":
     # Cores for multiprocessing
     cores = 1
 
+    # Show info on dedicated screen
+    dedicated_screen = True
+
     # Manipulator parameters
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
@@ -32,29 +35,29 @@ if __name__ == "__main__":
     parameters_variations = {
         "desired_position": [[5, 5, 5]],
         "cores": [4],
-        "pop_size": [100, 150],
-        "cross_individual_prob": [0.8, 0.7, 0.6],
-        "mut_individual_prob": [0.5, 0.3],
+        "pop_size": [100],
+        "cross_individual_prob": [0.8],
+        "mut_individual_prob": [0.5],
         "cross_joint_prob": [0.25],
         "mut_joint_prob": [0.25],
         "pairing_prob": [0.5],
         "sampling_points": [10],
         "torques_ponderations": [[1, 1, 1, 1]],
-        "generation_threshold": [3000],
+        "generation_threshold": [1000],
         "fitness_threshold": [1],
         "progress_threshold": [1],
         "generations_progress_threshold": [50],
         "distance_error_ponderation": [1],
-        "torques_error_ponderation": [0.1, 0.5],
+        "torques_error_ponderation": [0.1],
         "velocity_error_ponderation": [0],
         "rate_of_selection": [0.3],
         "elitism_size": [5],
-        "selection_method": [[0, 0, 0.7, 0.3], [0, 0.7, 0, 0.3], [0, 0.2, 0.6, 0.2]],
+        "selection_method": [[0, 0, 0.7, 0.3]],
         "rank_probability": [0.5],
         "pareto_tournament_size": [3],
         "niche_sigma": [0.5],
         "generation_for_print": [10],
-        "exponential_initialization": [False, True],
+        "exponential_initialization": [False],
         "total_time": [5],
         "individuals_to_display": [5]
     }
@@ -76,7 +79,7 @@ if __name__ == "__main__":
 
         runs = save_load_json.getRuns()
         print(f"Executing models on {cores} cores...")
-        executer = MultiCoreExecuter(runs, manipulator, save_load_json, cores=cores)
+        executer = MultiCoreExecuter(runs, manipulator, save_load_json, cores=cores, dedicated_screen=dedicated_screen)
         executer.run()
 
     # Initialize only
