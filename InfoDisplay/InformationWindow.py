@@ -8,9 +8,6 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.core.window import Window
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
-import matplotlib.pyplot as plt
-from matplotlib.transforms import Bbox
-import numpy as np
 
 
 class TabWithInfoC(TabbedPanelItem):
@@ -18,21 +15,22 @@ class TabWithInfoC(TabbedPanelItem):
         super(TabWithInfoC, self).__init__(**kwargs)
 
         self.tab = Builder.template('TabWithInfo', process=process, tab_name=f"Process {index}")
-        self.tab.ids.toggle_button.bind(on_press=self.toggle_graph)
         self.process = process
 
+        self.last_graphs = []
         self.param_value_model = None
-        self.show_params = False
 
     def updateTab(self, info):
 
         if "Defaults" in info.keys():
             self.param_value_model = info["Defaults"].items()
+            self.showParams()
 
         else:
             distance, torque, velocity = info["best_multi_fitness"]
+            status = " (Running)" if not info["terminate"] else " (Finished)"
 
-            self.tab.ids.model_label.text = str(info["model"][1])
+            self.tab.ids.model_label.text = str(info["model"][1]) + status
             self.tab.ids.generation_label.text = str(info["generation"])
             self.tab.ids.fitness_label.text = str(info["best_fitness"])
             self.tab.ids.distance_label.text = str(distance)
@@ -41,35 +39,33 @@ class TabWithInfoC(TabbedPanelItem):
             self.tab.ids.mean_fitness_label.text = str(info["mean_fitness"])
             self.tab.ids.time_label.text = "%.2f s" % info["time_elapsed"]
 
-            self.tab.ids.parameters_layout.clear_widgets()
+            self.last_graphs = [info["fitness_graph"], info["individual_graph"], info["pareto_graph"]]
+            self.showGraphs()
 
-            if self.show_params and self.param_value_model is not None:
-                self.tab.ids.parameters_layout.cols = 2
-                for param, value in self.param_value_model:
-                    self.tab.ids.parameters_layout.add_widget(Label(text=str(param)))
-                    self.tab.ids.parameters_layout.add_widget(Label(text=str(value)))
-                    self.tab.ids.parameters_layout.add_widget(Builder.template('SmallYSeparator'))
-                    self.tab.ids.parameters_layout.add_widget(Builder.template('SmallYSeparator'))
-            else:
-                self.tab.ids.parameters_layout.cols = 1
-                # plt.gcf()
-                fitness_graph = FigureCanvasKivyAgg(info["fitness_graph"])
-                individual_graph = FigureCanvasKivyAgg(info["individual_graph"])
+    def showParams(self):
+        self.tab.ids.params_tab.clear_widgets()
 
-                # info["fitness_graph"].set_size_inches(4, 3)
-                # info["individual_graph"].set_size_inches(4, 3)
+        for param, value in self.param_value_model:
+            self.tab.ids.params_tab.add_widget(Label(text=str(param)))
+            self.tab.ids.params_tab.add_widget(Label(text=str(value)))
+            self.tab.ids.params_tab.add_widget(Builder.template('SmallYSeparator'))
+            self.tab.ids.params_tab.add_widget(Builder.template('SmallYSeparator'))
 
-                self.tab.ids.parameters_layout.add_widget(fitness_graph)
-                fitness_graph.draw()
-                self.tab.ids.parameters_layout.add_widget(individual_graph)
-                individual_graph.draw()
+    def showGraphs(self):
+        if self.last_graphs is not None:
+            self.tab.ids.general_graphs.clear_widgets()
+            self.tab.ids.pareto_graph.clear_widgets()
 
-                plt.close(fitness_graph.figure)
-                plt.close(individual_graph.figure)
+            fitness_graph = FigureCanvasKivyAgg(self.last_graphs[0])
+            individual_graph = FigureCanvasKivyAgg(self.last_graphs[1])
+            pareto_graph = FigureCanvasKivyAgg(self.last_graphs[2])
 
-    def toggle_graph(self, instance):
-        self.show_params = not self.show_params
-
+            self.tab.ids.general_graphs.add_widget(fitness_graph)
+            fitness_graph.draw()
+            self.tab.ids.general_graphs.add_widget(individual_graph)
+            individual_graph.draw()
+            self.tab.ids.pareto_graph.add_widget(pareto_graph)
+            pareto_graph.draw()
 
 
 class MainGrid(GridLayout):
@@ -82,7 +78,6 @@ class MainGrid(GridLayout):
         self.tabs = []
 
         self.cols = 1
-
 
         self.tabbedPanel = TabbedPanel()
         self.tabbedPanel.do_default_tab = False
@@ -106,7 +101,6 @@ class MainGrid(GridLayout):
 
             current_tab = list(filter(lambda x: x.process == process, self.tabs))[0]
 
-
             current_tab.updateTab(element)
 
 
@@ -123,6 +117,7 @@ class InformationWindow(App):
         Window.minimum_width = w_width
         Window.minimum_height = w_height
         Window.size = (w_width, w_height)
+
         return MainGrid(self.queue)
 
 

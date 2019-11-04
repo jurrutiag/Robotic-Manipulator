@@ -43,7 +43,7 @@ if __name__ == "__main__":
         "pairing_prob": [0.5],
         "sampling_points": [10],
         "torques_ponderations": [[1, 1, 1, 1]],
-        "generation_threshold": [1000],
+        "generation_threshold": [200],
         "fitness_threshold": [1],
         "progress_threshold": [1],
         "generations_progress_threshold": [50],

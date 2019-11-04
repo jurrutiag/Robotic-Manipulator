@@ -4,12 +4,11 @@ import matplotlib.pyplot as plt
 import Individual
 import FitnessFunction
 import time
-import pickle
 from PrintModule import PrintModule
 import multiprocessing
 import pygmo as pg
 import itertools
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D  # No borrar, es necesario
 
 
 class GeneticAlgorithm:
@@ -114,6 +113,7 @@ class GeneticAlgorithm:
         # Algorithm timing, resource measure and prints
 
         self._print_module = print_module if print_module is not None else PrintModule()
+        self._start_time = 0
         self._total_training_time = None
 
         # Final Results
@@ -121,7 +121,9 @@ class GeneticAlgorithm:
         self._best_individual = None
         self._graphs_fitness = []
         self._graphs_individuals = []
+        self._quick_individuals_graphs = []
         self._best_individuals_list = []
+        self._last_pareto_frontier = None
 
         # MultiCore algorithm
 
@@ -144,15 +146,6 @@ class GeneticAlgorithm:
         self._info_queue = None
         self._console_print = True
         self._model_process_and_id = model_process_and_id
-        # self._console_info = console_info
-        # if not console_info:
-        #     self._info_queue = multiprocessing.Queue()
-        #     import sys
-        #     sys.path.insert(1, '../InfoDisplay')
-        #     from InformationWindow import runInfoDisplay
-        #     self._info_process = multiprocessing.Process(target=runInfoDisplay, args=(self._info_queue, ))
-        #     self._info_process.start()
-
 
     def runAlgorithm(self, print_data=True):
 
@@ -170,8 +163,9 @@ class GeneticAlgorithm:
 
         while True:
 
+            # Individuals that are saved to png
             if self._generation in self._individuals_to_display:
-                self._graphs_individuals.append(self.graphIndividual())
+                self.graphIndividual()
                 self._best_individuals_list.append([self._best_individual.getGenes().tolist(), self._generation])
 
             # Check for termination condition
@@ -183,10 +177,15 @@ class GeneticAlgorithm:
                 if print_data:
                     self.printGenerationData()
 
-                self._graphs_fitness.append(self.graph(2))
+                self.graph(2)
+
+                if self._console_print:
+                    self.printGenerationData()
+                self.updateInfo(terminate=True)
 
                 # Bury the processes
-                self.buryProcesses()
+                if self._cores > 1:
+                    self.buryProcesses()
 
                 return
 
@@ -195,11 +194,6 @@ class GeneticAlgorithm:
                 if self._console_print:
                     self.printGenerationData()
                 self.updateInfo()
-
-            if self._generation % 20 == 0:
-                # self.plotParetoFrontier()
-                pass
-
 
             # Selection of parents
             self.selection()
@@ -582,6 +576,8 @@ class GeneticAlgorithm:
         return fig_fitness
 
     def graph(self, choice):
+        for fit_fig in self._graphs_fitness:
+            plt.close(fit_fig)
 
         best_case_np = np.array(self._best_case)
         average_case_np = np.array(self._average_case)
@@ -599,11 +595,15 @@ class GeneticAlgorithm:
                                "Evolución del algoritmo genético", choice)
 
         # plt.show()
-        return [fig_fitness, fig_distancia, fig_torque]
+        self._graphs_fitness = [fig_fitness, fig_distancia, fig_torque]
 
         # self._graphs_fitness.append([fig_fitness, fig_distancia, fig_torque])
 
-    def graphIndividual(self):
+    def graphIndividual(self, quick_graph=False):
+
+        for ind_fig in self._quick_individuals_graphs:
+            plt.close(ind_fig)
+
         fig_best_individual, ax_best_individual = plt.subplots(ncols=1, nrows=1)
 
         for ang in np.transpose(self._best_individual.getGenes()):
@@ -616,8 +616,9 @@ class GeneticAlgorithm:
 
         # plt.show()
 
-        return [fig_best_individual, self._generation]
-        # self._graphs_individuals.append([fig_best_individual, self._generation])
+        self._quick_individuals_graphs = [fig_best_individual, self._generation]
+        if not quick_graph:
+            self._graphs_individuals.append([fig_best_individual, self._generation])
 
 
     def printGenerationData(self):
@@ -646,15 +647,41 @@ class GeneticAlgorithm:
             plt.plot(ang)
         plt.show()
 
+    def paretoFrontierIndividuals(self, population):
+        multi_fitnesses = [list(ind.getMultiFitness()) for ind in population]
+        dominants = []
+        for multi_fitness in multi_fitnesses:
+            if not np.any([pg.pareto_dominance(others_fitness, multi_fitness) for others_fitness in multi_fitnesses if others_fitness != multi_fitness]):
+                dominants.append(multi_fitness)
+
+        return dominants
+
     def plotParetoFrontier(self):
+        if self._last_pareto_frontier is not None:
+            plt.close(self._last_pareto_frontier)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         f_distance, f_torque, f_velocity = zip(*[ind.getMultiFitness() for ind in self._population])
-        ax.scatter(f_distance, f_torque, f_velocity)
-        ax.set_xlim([0, 16])
-        ax.set_ylim([0, 8000])
-        ax.set_zlim([0, 6])
-        fig.show()
+        dominants_x, dominants_y, dominants_z = zip(*self.paretoFrontierIndividuals(self._population))
+        ax.scatter(f_distance, f_torque, f_velocity, zorder=-1)
+        ax.scatter(dominants_x, dominants_y, dominants_z, color='red', zorder=1, alpha=1)
+        xlim = [0, 16]
+        ylim = [0, 8000]
+        zlim = [0, 6]
+
+        ax.set_xlim(xlim)
+        ax.set_xticks([0, 4, 8, 12, 16])
+        ax.set_ylim(ylim)
+        ax.set_yticks([0, 2000, 4000, 6000, 8000])
+        ax.set_zlim(zlim)
+        ax.set_zticks([0, 2, 4, 6])
+
+        ax.set_title("Multiple Fitnesses for Individuals")
+        ax.set_xlabel("Distance")
+        ax.set_ylabel("Torque")
+        ax.set_zlabel("Velocity")
+
+        self._last_pareto_frontier = fig
 
     def buryProcesses(self):
 
@@ -669,11 +696,11 @@ class GeneticAlgorithm:
         self._info_queue.put({"Defaults": self._all_info, "model": self._model_process_and_id})
         self._console_print = False
 
-    def updateInfo(self):
+    def updateInfo(self, terminate=False):
         if self._info_queue is not None:
-            fitness_graph, f2, f3 = self.graph(2)
-            plt.close(f2)
-            plt.close(f3)
+            self.graph(2)
+            self.graphIndividual(quick_graph=True)
+            self.plotParetoFrontier()
 
             info = {
                 "model": self._model_process_and_id,
@@ -682,8 +709,10 @@ class GeneticAlgorithm:
                 "best_fitness": self._best_case[-1][0],
                 "mean_fitness": self._average_case[-1][0],
                 "time_elapsed": time.time() - self._start_time,
-                "fitness_graph": fitness_graph,
-                "individual_graph": self.graphIndividual()[0]
+                "fitness_graph": self._graphs_fitness[0],
+                "individual_graph": self._quick_individuals_graphs[0],
+                "pareto_graph": self._last_pareto_frontier,
+                "terminate": terminate
             }
             self._info_queue.put(info)
 
@@ -719,9 +748,6 @@ class GeneticAlgorithm:
 
     def getGeneration(self):
         return self._generation
-
-    def getDefaults(self):
-        return self._all_info
 
     @staticmethod
     def percentagesToValues(total, percentages):

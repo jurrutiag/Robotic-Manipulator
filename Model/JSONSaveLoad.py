@@ -36,7 +36,7 @@ class JSONSaveLoad:
     def loadParameters(self, repetitions=1):
         runs = []
 
-        default_parameters = self._GA.getDefaults()
+        default_parameters = self._GA.getAlgorithmInfo()
 
         keys, values = zip(*self._parameters_variations.items())
 
@@ -62,7 +62,7 @@ class JSONSaveLoad:
             individuals_json = json.load(f)
             index = individuals_json["Index"]
 
-            fit_graphs, dist_graphs, torque_graphs = GA.getFitnessGraphs()[0]
+            fit_graphs, dist_graphs, torque_graphs = GA.getFitnessGraphs()
 
             fit_graphs.savefig(self._trained_models_dir + "/Graphs/Fitness/fitness_graph_" + str(index))
             dist_graphs.savefig(self._trained_models_dir + "/Graphs/Distance/distance_graph_" + str(index))

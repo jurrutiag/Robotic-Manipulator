@@ -58,26 +58,35 @@
 
         GridLayout:
             cols: 1
-            size_hint: 0.4, 1
+            size_hint: 0.7, 1
 
-            GridLayout:
-                cols: 2
-                size_hint: 1, 0.1
+            TabbedPanel:
+                do_default_tab: False
+                TabbedPanelItem:
+                    text: "Graphs"
+                    GridLayout:
+                        cols: 1
 
-                Button:
-                    text: "  Graph\n/params"
-                    id: toggle_button
-                    size_hint: 0.4, 1
+                        TabbedPanel:
+                            do_default_tab: False
+                            TabbedPanelItem:
+                                text: "General"
+                                GridLayout:
+                                    cols: 1
+                                    id: general_graphs
+                            TabbedPanelItem:
+                                text: "Pareto"
+                                GridLayout:
+                                    cols: 1
+                                    id: pareto_graph
 
-                BackgroundLabel:
-                    text: "Model Parameters:"
 
+                TabbedPanelItem:
+                    text: "Params"
 
-            SeparatorY:
-
-            GridLayout:
-                cols:2
-                id: parameters_layout
+                    GridLayout:
+                        cols: 2
+                        id: params_tab
 
         SeparatorX:
 
