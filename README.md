@@ -11,6 +11,18 @@ The Model folder contains 'main.py', the file that can run the algorithm importi
 
 'RoboticManipulator.py' contains the logic of the manipulator itself, 'FitnessFunction.py' contains the logic of the fitnes function used, and 'GeneticAlgorithm.py' features the algorithm itself, using individuals modeled with the Individual class contained in 'Individual.py'.
 
+# Pre installations
+
+For visualization with kivy, the following commands are necessary:
+
+pip install kivy
+
+python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
+
+pip install kivy-garden
+
+garden install matplotlib
+
 
 ## Authors
 * Javier Mosnaim
