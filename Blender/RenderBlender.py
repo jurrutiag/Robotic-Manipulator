@@ -3,12 +3,7 @@ import json
 import time
 
 
-def render():
-    render_model_name = input("Enter the model name: ")
-    render_last = False if input("Render all individuals for each model (N: render last individual)? (Y/N): ") == "Y" else True
-    render_all = True if input("Render all models (N: render last model or animate=true)? (Y/N): ") == "Y" else False
-    render_true = True if not render_all and input("Render only the animate=true individual? (Y/N): ") == "Y" else False
-
+def render(render_model_name, render_run, render_individuals):
 
     fps = 30
 
@@ -18,28 +13,31 @@ def render():
     with open("../Blender/BlenderConfig.json") as f:
         blender_config = json.load(f)
 
-    individuals = the_json["Best Individuals"] if render_all else [the_json["Best Individuals"][-1]]
-    if render_true:
-        individuals = []
+    # runs = the_json["Best Individuals"] if run_selected else [the_json["Best Individuals"][-1]]
+    runs = the_json["Best Individuals"] if (render_run == -1) else [the_json["Best Individuals"][render_run]]
+    # TODO: Delete this
+    if False:
+        runs = []
         for ind in the_json["Best Individuals"]:
             if ind["Animate"]:
-                individuals.append(ind)
+                runs.append(ind)
                 ind["Animate"] = False
         with open(f"../Model/Trained Models/{render_model_name}/{render_model_name}.json", 'w') as f:
             json.dump(the_json, f)
 
-    for ind in individuals:
-        genes = [ind["Genes"][-1]] if render_last else ind["Genes"]
-        for gene in genes:
+    for run in runs:
+        # individuals = [run["Genes"][-1]] if runs_to_render else run["Genes"]
+        individuals = [run["Genes"][i] for i in render_individuals]
+        for ind in individuals:
             with open("../Blender/BlenderConfig.json", "w") as f:
-                tot_time = ind["Info"]["total_time"]
-                blender_config["Desired Position"] = ind["Info"]["desired_position"]
+                tot_time = run["Info"]["total_time"]
+                blender_config["Desired Position"] = run["Info"]["desired_position"]
                 blender_config["Total time"] = tot_time
-                blender_config["Genes to Animate"] = gene[0]
+                blender_config["Genes to Animate"] = ind[0]
                 json.dump(blender_config, f)
-            if not os.path.exists(f"../Model/Trained Models/Renders/{ind['ID']}"):
-                os.makedirs(f"../Model/Trained Models/Renders/{ind['ID']}")
-            render_path = f"{render_model_name}/Renders/{ind['ID']}/individual_{ind['ID']}_gen_{gene[1]}_"
+            if not os.path.exists(f"../Model/Trained Models/Renders/{run['ID']}"):
+                os.makedirs(f"../Model/Trained Models/Renders/{run['ID']}")
+            render_path = f"{render_model_name}/Renders/{run['ID']}/individual_{run['ID']}_gen_{ind[1]}_"
             end_frame = fps * (tot_time + 1)
 
             renderWithPath(render_path, end_frame)

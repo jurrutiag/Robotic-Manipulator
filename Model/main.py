@@ -15,11 +15,6 @@ if __name__ == "__main__":
 
     # Select a running option.
     options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling', 'Render', 'Find Pareto Frontier']
-    option_string = input("Select one: Run All (1), Initialize Only (2), Profiling (3), Render (4), Find Pareto Frontier (5), Testing (Else): ")
-    try:
-        option = options[int(option_string)]
-    except ValueError:
-        option = options[0]
 
     # Cores for multiprocessing
     cores = 1
@@ -43,7 +38,7 @@ if __name__ == "__main__":
         "pairing_prob": [0.5],
         "sampling_points": [10],
         "torques_ponderations": [[1, 1, 1, 1]],
-        "generation_threshold": [200],
+        "generation_threshold": [100],
         "fitness_threshold": [1],
         "progress_threshold": [1],
         "generations_progress_threshold": [50],
@@ -68,10 +63,41 @@ if __name__ == "__main__":
 
     manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
 
+    run_on_command_line = input("Run on command line? (Y/N)") == "Y"
+
+    if run_on_command_line:
+        option_string = input(
+            "Select one: Run All (1), Initialize Only (2), Profiling (3), Render (4), Find Pareto Frontier (5), Testing (Else): ")
+        try:
+            option = options[int(option_string)]
+        except ValueError:
+            option = options[0]
+
+        if option in options[:2]:
+            run_name = input("Enter the name for saving the run: ") if option == options[1] else 'json_test'
+    else:
+        import sys
+        sys.path.insert(1, '../InfoDisplay')
+        from InformationWindow import runMainWindow
+        main_window_info = runMainWindow(GeneticAlgorithm(None).getAlgorithmInfo())
+        option_num = main_window_info['final_option']
+
+        if option_num is None:
+            sys.exit(1)
+        elif option_num == 1:
+            parameters_variations = main_window_info['parameters_variations']
+            cores = main_window_info['cores']
+            run_name = main_window_info['run_name']
+        elif option_num == 4:
+            render_model_name = main_window_info['render_model_name']
+            render_run = main_window_info['render_run']
+            render_individuals = main_window_info['render_individuals']
+
+        option = options[option_num]
+
     # Run all
     if option in options[:2]:
-        run_name = input("Enter the name for saving the run: ") if option == options[1] else 'json_test'
-        save_load_json = JSONSaveLoad(GA=GeneticAlgorithm(manipulator, [5, 5, 5]),
+        save_load_json = JSONSaveLoad(GA=GeneticAlgorithm(manipulator),
                                       save_filename=run_name,
                                       parameters_variations=parameters_variations)
 
@@ -79,13 +105,13 @@ if __name__ == "__main__":
 
         runs = save_load_json.getRuns()
         print(f"Executing models on {cores} cores...")
-        executer = MultiCoreExecuter(runs, manipulator, save_load_json, cores=cores, dedicated_screen=dedicated_screen)
+        executer = MultiCoreExecuter(runs, manipulator, save_load_json, cores=cores,
+                                     dedicated_screen=dedicated_screen, model_name=run_name)
         executer.run()
 
     # Initialize only
     elif option == options[2]:
-        default_parameters = JSONSaveLoad.loadDefaults()
-        GA = GeneticAlgorithm(manipulator, **default_parameters)
+        GA = GeneticAlgorithm(manipulator)
         GA.initialization()
         individual = GA.getPopulation()[0]
 
@@ -100,25 +126,32 @@ if __name__ == "__main__":
 
     # Profiling
     elif option == options[3]:
-        print("Run the following commands:")
+        print("Run the following commands to see the profiling on the interface:")
         print("python -m cProfile -o main_profiling.cprof main.py")
         print("pyprof2calltree -k -i main_profiling.cprof")
 
-        default_parameters = JSONSaveLoad.loadDefaults()
-        default_params_profiling = default_parameters
-        default_params_profiling['generation_threshold'] = 1
-        default_params_profiling['torques_error_ponderation'] = 0.0003
+        GA = GeneticAlgorithm(manipulator, print_data=False)
 
-        GA = GeneticAlgorithm(manipulator, **default_parameters)
-
-        cProfile.run('GA.runAlgorithm(print=False)', sort='cumtime')
+        print("Profiling...")
+        cProfile.run('GA.runAlgorithm()', sort='cumtime')
 
     # Rendering
     elif option == options[4]:
         import sys
+
         sys.path.insert(1, '../Blender')
         from RenderBlender import render
-        render()
+
+        if run_on_command_line:
+            render_model_name = input("Enter the model name: ")
+            render_last = False if input(
+                "Render all individuals for each model (N: render last individual)? (Y/N): ") == "Y" else True
+            render_all = True if input(
+                "Render all models (N: render last model or animate=true)? (Y/N): ") == "Y" else False
+            render_true = True if not render_all and input(
+                "Render only the animate=true individual? (Y/N): ") == "Y" else False
+
+        render(render_model_name, render_run, render_individuals)
 
     # Find Pareto Frontier
     elif option == options[5]:
@@ -134,12 +167,7 @@ if __name__ == "__main__":
 
         for fit_id, multi_fitness in multi_fitnesses:
             if not np.any([pg.pareto_dominance(others_fitness, multi_fitness)
-                  for _, others_fitness in multi_fitnesses if others_fitness != multi_fitness]):
+                           for _, others_fitness in multi_fitnesses if others_fitness != multi_fitness]):
                 dominants.append(fit_id)
 
         print("Dominant ids: ", *dominants)
-
-    import winsound
-    frequency = 2500  # Set Frequency To 2500 Hertz
-    duration = 1000  # Set Duration To 1000 ms == 1 second
-    winsound.Beep(frequency, duration)

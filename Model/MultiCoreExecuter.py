@@ -8,7 +8,7 @@ from PrintModule import PrintModule
 
 class MultiCoreExecuter:
 
-    def __init__(self, runs, manipulator, json_handler, cores=4, dedicated_screen=False):
+    def __init__(self, runs, manipulator, json_handler, cores=4, dedicated_screen=False, model_name='json_test'):
 
         self._manipulator = manipulator
         self._runs = runs
@@ -21,7 +21,7 @@ class MultiCoreExecuter:
             import sys
             sys.path.insert(1, '../InfoDisplay')
             from InformationWindow import runInfoDisplay
-            self._info_process = multiprocessing.Process(target=runInfoDisplay, args=(self._info_queue,))
+            self._info_process = multiprocessing.Process(target=runInfoDisplay, args=(self._info_queue, model_name))
             self._info_process.start()
 
     def run(self):

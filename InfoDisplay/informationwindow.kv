@@ -34,7 +34,7 @@
             pos: separator.center_x, self.pos[1]
             size: self.thickness, separator.height
 
-[SmallYSeparator@Widget]:
+<SmallYSeparator@Widget>:
     id: separator
     size_hint_y: None
     height: 0.5
@@ -46,12 +46,11 @@
             pos: self.pos[0], separator.center_y
             size: separator.width, self.thickness
 
-[TabWithInfo@TabbedPanelItem]:
+<TabWithInfo@TabbedPanelItem>:
 
     size: root.width, root.height
     pos: 0, 0
-    process: ctx.process
-    text: ctx.tab_name
+    process: self.process
 
     GridLayout:
         cols: 3
@@ -206,3 +205,46 @@
                 SmallYSeparator:
                     size_hint_x: 0.4
                 SmallYSeparator:
+
+<MainWindowGrid>:
+    cols: 1
+
+    GridLayout:
+        cols: 1
+        size_hint: 1, 0.3
+        BackgroundLabel:
+            text: "Robotic Manipulator"
+
+    GridLayout:
+        cols: 2
+        GridLayout:
+            cols: 1
+            Button:
+                on_press: app.runAllTesting()
+                text: "Run All on testing"
+            Button:
+                on_press: app.runAll()
+                text: "Run All"
+            Button:
+                on_press: app.initializeOnly()
+                text: "Initialize Only"
+            Button:
+                on_press: app.profiling()
+                text: "Profiling"
+            Button:
+                on_press: app.render()
+                text: "Render"
+            Button:
+                on_press: app.findParetoFrontier()
+                text: "Find Pareto Frontier"
+        GridLayout:
+            cols: 1
+            GridLayout:
+                cols: 1
+                id: info_layout
+
+            Button:
+                size_hint: 1, 0.2
+                id: run_button
+                text: "Run"
+                on_press: app.stop()

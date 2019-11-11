@@ -1,0 +1,154 @@
+<BackgroundColor@Widget>
+    background_color: 1, 1, 1, 1
+    canvas.before:
+        Color:
+            rgba: root.background_color
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<BackgroundLabel@Label+BackgroundColor>
+    background_color: 1, 0, 0, 0
+
+<SeparatorY@Widget>:
+    id: separator
+    size_hint_y: None
+    height: 6
+    thickness: 2
+    canvas:
+        Color:
+            rgb: .24, .65, .94
+        Rectangle:
+            pos: self.pos[0], separator.center_y
+            size: separator.width, self.thickness
+
+<SeparatorX@Widget>:
+    id: separator
+    size_hint_x: None
+    width: 2
+    thickness: 2
+    canvas:
+        Color:
+            rgb: .24, .65, .94
+        Rectangle:
+            pos: separator.center_x, self.pos[1]
+            size: self.thickness, separator.height
+
+<RunWindow@GridLayout>:
+    cols: 1
+    GridLayout:
+        size_hint: 1, 0.08
+        cols: 4
+        Label:
+            text: 'Processes:'
+            size_hint: 0.7, 1
+        TextInput:
+            multiline: False
+            text: '1'
+            size_hint: 0.2, 1
+            id: cores
+        Label:
+            size_hint: 0.7, 1
+            text: 'Default Parameters'
+        CheckBox:
+            id: use_defaults
+            size_hint: 0.2, 1
+            on_active: app.on_checkbox_active(*args)
+    ScrollView:
+        GridLayout:
+            size_hint_y: None
+            cols: 1
+            row_default_height: root.height * 0.06
+            height: self.minimum_height
+            id: parameters_layout
+    GridLayout:
+        size_hint: 1, 0.08
+        cols: 2
+        Label:
+            text: 'Model Name:'
+        TextInput:
+            multiline: False
+            text: 'json_test'
+            id: run_name
+
+
+<RenderWindow@GridLayout>:
+    cols: 1
+
+    GridLayout:
+        cols: 2
+        size_hint: 1, 0.16
+        Label:
+            text: 'Select Model:'
+        Spinner:
+            id: model_selection
+            on_text: app.selectedModel(*args)
+        Label:
+            text: 'Render all runs:'
+        CheckBox:
+            on_active: app.allRunsCheckbox(*args)
+
+
+    GridLayout:
+        cols: 1
+        id: render_selections
+
+        GridLayout:
+            cols: 2
+
+            size_hint: 1, 0.16
+
+            Label:
+                text: 'Select Run:'
+            Spinner:
+                id: run_selection
+                on_text: app.selectedRun(*args)
+            Label:
+                text: 'Select Individuals:'
+            Button:
+                text: 'Select All'
+                on_press: app.selectAllIndividuals()
+
+        ScrollView:
+            GridLayout:
+                size_hint_y: None
+                cols: 2
+                row_default_height: root.height * 0.06
+                height: self.minimum_height
+                id: individuals_selection
+
+
+
+
+<MainWindowGrid>:
+    cols: 1
+    GridLayout:
+        cols: 2
+        GridLayout:
+            cols: 1
+            Button:
+                on_press: app.runAll()
+                text: "Run All"
+            Button:
+                on_press: app.initializeOnly()
+                text: "Initialize Only"
+            Button:
+                on_press: app.profiling()
+                text: "Profiling"
+            Button:
+                on_press: app.render()
+                text: "Render"
+            Button:
+                on_press: app.findParetoFrontier()
+                text: "Find Pareto Frontier"
+        GridLayout:
+            cols: 1
+            GridLayout:
+                cols: 1
+                id: info_layout
+
+            Button:
+                size_hint: 1, 0.2
+                id: run_button
+                text: "Run"
+                on_press: app.runButton()

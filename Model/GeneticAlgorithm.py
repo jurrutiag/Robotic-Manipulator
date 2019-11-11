@@ -8,13 +8,16 @@ from PrintModule import PrintModule
 import multiprocessing
 import pygmo as pg
 import itertools
+from DisplayHandler import DisplayHandler
 from mpl_toolkits.mplot3d import Axes3D  # No borrar, es necesario
 
 
 class GeneticAlgorithm:
 
+    DEFAULT_POSITION = [5, 5, 5]
+
     def __init__(self, manipulator,
-                 desired_position,
+                 desired_position=DEFAULT_POSITION,
                  print_module=None,
                  cores=1,
                  pop_size=100,
@@ -25,11 +28,11 @@ class GeneticAlgorithm:
                  pairing_prob=0.5,
                  sampling_points=20,
                  torques_ponderations=(1, 1, 1, 1),
-                 generation_threshold=1000,
-                 fitness_threshold=0.8,
+                 generation_threshold=100,
+                 fitness_threshold=1,
                  progress_threshold=1,
                  generations_progress_threshold=50,
-                 torques_error_ponderation=0.0003,
+                 torques_error_ponderation=0.1,
                  distance_error_ponderation=1,
                  velocity_error_ponderation=0.1,
                  rate_of_selection=0.3,
@@ -39,6 +42,7 @@ class GeneticAlgorithm:
                  pareto_tournament_size=5,
                  niche_sigma=100,
                  generation_for_print=10,
+                 print_data=True,
                  exponential_initialization=False,
                  total_time=5,
                  individuals_to_display=5,
@@ -143,11 +147,15 @@ class GeneticAlgorithm:
 
         # Information Display
 
+        self._display_handler = DisplayHandler(self,
+                                               print_data=print_data,
+                                               generation_for_print=generation_for_print,
+                                               console_print=True)
         self._info_queue = None
-        self._console_print = True
+
         self._model_process_and_id = model_process_and_id
 
-    def runAlgorithm(self, print_data=True):
+    def runAlgorithm(self):
 
         self._start_time = time.time()
 
@@ -163,37 +171,20 @@ class GeneticAlgorithm:
 
         while True:
 
-            # Individuals that are saved to png
-            if self._generation in self._individuals_to_display:
-                self.graphIndividual()
-                self._best_individuals_list.append([self._best_individual.getGenes().tolist(), self._generation])
+            self._display_handler.updateDisplay()
 
             # Check for termination condition
             if self.terminationCondition():
                 self._total_training_time = time.time() - self._start_time
                 self.findBestIndividual()
 
-                # Print last information on the terminal
-                if print_data:
-                    self.printGenerationData()
-
-                self.graph(2)
-
-                if self._console_print:
-                    self.printGenerationData()
-                self.updateInfo(terminate=True)
+                self._display_handler.updateDisplay(terminate=True)
 
                 # Bury the processes
                 if self._cores > 1:
                     self.buryProcesses()
 
                 return
-
-            # Information is printed on the terminal
-            if self._generation_for_print and self._generation % self._generation_for_print == 0 and print_data:
-                if self._console_print:
-                    self.printGenerationData()
-                self.updateInfo()
 
             # Selection of parents
             self.selection()
@@ -761,3 +752,8 @@ class GeneticAlgorithm:
             values.append(value)
 
         return values
+
+    @staticmethod
+    def getDefaults():
+        GA = GeneticAlgorithm(None, GeneticAlgorithm.DEFAULT_POSITION)
+        return GA.getAlgorithmInfo()
