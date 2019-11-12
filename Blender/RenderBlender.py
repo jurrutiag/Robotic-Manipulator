@@ -15,15 +15,6 @@ def render(render_model_name, render_run, render_individuals):
 
     # runs = the_json["Best Individuals"] if run_selected else [the_json["Best Individuals"][-1]]
     runs = the_json["Best Individuals"] if (render_run == -1) else [the_json["Best Individuals"][render_run]]
-    # TODO: Delete this
-    if False:
-        runs = []
-        for ind in the_json["Best Individuals"]:
-            if ind["Animate"]:
-                runs.append(ind)
-                ind["Animate"] = False
-        with open(f"../Model/Trained Models/{render_model_name}/{render_model_name}.json", 'w') as f:
-            json.dump(the_json, f)
 
     for run in runs:
         # individuals = [run["Genes"][-1]] if runs_to_render else run["Genes"]

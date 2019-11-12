@@ -8,6 +8,7 @@ if __name__ == "__main__":
     from JSONSaveLoad import JSONSaveLoad
     from MultiCoreExecuter import MultiCoreExecuter
     import cProfile
+    import json
 
     ## Configurations
 
@@ -75,6 +76,7 @@ if __name__ == "__main__":
 
         if option in options[:2]:
             run_name = input("Enter the name for saving the run: ") if option == options[1] else 'json_test'
+            all_combinations = input("All combinations of parameters? (Y/N)") == "Y"
     else:
         import sys
         sys.path.insert(1, '../InfoDisplay')
@@ -88,6 +90,7 @@ if __name__ == "__main__":
             parameters_variations = main_window_info['parameters_variations']
             cores = main_window_info['cores']
             run_name = main_window_info['run_name']
+            all_combinations = main_window_info['all_combinations']
         elif option_num == 4:
             render_model_name = main_window_info['render_model_name']
             render_run = main_window_info['render_run']
@@ -101,13 +104,45 @@ if __name__ == "__main__":
                                       save_filename=run_name,
                                       parameters_variations=parameters_variations)
 
-        save_load_json.loadParameters(model_repetition)
+        save_load_json.loadParameters(model_repetition, all_combinations=all_combinations)
 
         runs = save_load_json.getRuns()
         print(f"Executing models on {cores} cores...")
-        executer = MultiCoreExecuter(runs, manipulator, save_load_json, cores=cores,
-                                     dedicated_screen=dedicated_screen, model_name=run_name)
+        executer = MultiCoreExecuter(runs,
+                                     manipulator,
+                                     save_load_json,
+                                     cores=cores,
+                                     dedicated_screen=dedicated_screen,
+                                     model_name=run_name)
         executer.run()
+
+        if not all_combinations:
+            with open(f'../Model/Trained Models/{run_name}/{run_name}.json') as f:
+                model_json = json.load(f)
+                inds = model_json['Best Individuals']
+                first_ind_info = inds[0]['Info']
+
+                final_info_dictionary = {}
+
+                for ind in inds:
+                    for key, val in ind['Info'].items():
+                        if val != first_ind_info[key]:
+                            if f'{key} = {val}' in final_info_dictionary:
+                                final_info_dictionary[f'{key} = {val}'].append(ind['Multi Fitness'])
+                            else:
+                                final_info_dictionary[f'{key} = {val}'] = [ind['Multi Fitness']]
+                            break
+                    else:
+                        if 'Initial' in final_info_dictionary:
+                            final_info_dictionary['Initial'].append(ind['Multi Fitness'])
+                        else:
+                            final_info_dictionary['Initial'] = [ind['Multi Fitness']]
+
+                for key, val in final_info_dictionary.items():
+                    final_info_dictionary[key] = np.mean(val, axis=0).tolist()
+
+                with open(f'../Model/Trained Models/{run_name}/{run_name}_mfitnesses_dict.json', 'w') as f:
+                    json.dump(final_info_dictionary, f)
 
     # Initialize only
     elif option == options[2]:
@@ -144,19 +179,17 @@ if __name__ == "__main__":
 
         if run_on_command_line:
             render_model_name = input("Enter the model name: ")
-            render_last = False if input(
-                "Render all individuals for each model (N: render last individual)? (Y/N): ") == "Y" else True
-            render_all = True if input(
-                "Render all models (N: render last model or animate=true)? (Y/N): ") == "Y" else False
-            render_true = True if not render_all and input(
-                "Render only the animate=true individual? (Y/N): ") == "Y" else False
+            render_run = int(input(
+                "Enter Run Number: "))
+            render_individuals = [int(input(
+                "Enter individual to render (integer): "))]
 
+        print(render_model_name, render_run, render_individuals)
         render(render_model_name, render_run, render_individuals)
 
     # Find Pareto Frontier
     elif option == options[5]:
         import pygmo as pg
-        import json
 
         model = input("Enter model name to find the Pareto frontier: ")
         with open(f"../Model/Trained Models/{model}/{model}.json") as f:

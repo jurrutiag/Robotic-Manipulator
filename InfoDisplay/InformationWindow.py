@@ -141,13 +141,13 @@ class MainWindow(App):
         self.default_params = default_params
         self.text_inputs = {}
         self.use_defaults = False
+        self.all_combinations = True
         self.run_window = None
         self.cores = 1
 
         # Render
         self.render_window = None
         self.individuals_checkboxes = []
-        self.all_runs_render = False
         self.render_model_name = ''
         self.render_run = 0
 
@@ -205,7 +205,8 @@ class MainWindow(App):
             self.information = {
                 'parameters_variations': self.parameters_variations,
                 'cores': self.cores,
-                'run_name': self.run_window.ids.run_name.text
+                'run_name': self.run_window.ids.run_name.text,
+                'all_combinations': self.all_combinations
             }
         elif self.chosen_option == 4:
             self.information = {
@@ -221,6 +222,9 @@ class MainWindow(App):
     def on_checkbox_active(self, checkbox, value):
         self.use_defaults = value
         self.showParameters()
+
+    def allCombinationsCheckBox(self, checkbox, value):
+        self.all_combinations = value
 
     def runWindow(self):
         self.run_window = Factory.RunWindow()
@@ -247,11 +251,10 @@ class MainWindow(App):
     def selectedModel(self, instance, model):
         self.render_model_name = model
 
-        if not self.all_runs_render:
-            self.render_window.ids.individuals_selection.clear_widgets()
-            amount_of_runs = len([name for name in os.listdir(f"../Model/Trained Models/{model}/Graphs/Individuals") if os.path.isdir(f'../Model/Trained Models/{model}/Graphs/Individuals/{name}')])
+        self.render_window.ids.individuals_selection.clear_widgets()
+        amount_of_runs = len([name for name in os.listdir(f"../Model/Trained Models/{model}/Graphs/Individuals") if os.path.isdir(f'../Model/Trained Models/{model}/Graphs/Individuals/{name}')])
 
-            self.render_window.ids.run_selection.values = list(map(str, sorted(range(amount_of_runs), reverse=True)))
+        self.render_window.ids.run_selection.values = list(map(str, sorted(range(amount_of_runs), reverse=True)))
 
     def selectedRun(self, instance, run):
         self.render_run = int(run)
@@ -272,13 +275,6 @@ class MainWindow(App):
         else:
             for chbox in self.individuals_checkboxes:
                 chbox.active = True
-
-    def allRunsCheckbox(self, checkbox, value):
-        self.all_runs_render = value
-        self.render_window.ids.render_selections.size_hint_x = 0 if value else 1
-        self.render_window.ids.render_selections.opacity = 0 if value else 1
-        self.render_window.ids.render_selections.disabled = value
-        self.render_window.ids.render_selections.visible = not value
 
 
 def runInfoDisplay(queue, title):
