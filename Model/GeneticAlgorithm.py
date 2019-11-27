@@ -549,7 +549,7 @@ class GeneticAlgorithm:
         self._best_case.append(np.concatenate(([np.max(fitnesses)], np.min(sep_fitnesses, axis=0))))
         self._average_case.append(np.concatenate(([np.mean(fitnesses)], np.mean(sep_fitnesses, axis=0))))
 
-    def plotSingleFitness(self, best, average, xlab, ylab, title, choice):
+    def plotSingleFitness(self, best, average, xlab, ylab, title, choice, logscale):
 
         fig_fitness, ax_fitness = plt.subplots(ncols=1, nrows=1)
         cases = ['mejor caso', 'promedio']
@@ -558,6 +558,9 @@ class GeneticAlgorithm:
             ax_fitness.plot(best, label=cases[0])
         if choice == 1 or choice >= len(cases):
             ax_fitness.plot(average, label=cases[1])
+
+        if logscale:
+            ax_fitness.set_yscale("log")
 
         ax_fitness.legend(["Mejor Caso", "Promedio"])
         ax_fitness.set_xlabel(xlab, fontsize=10)
@@ -575,15 +578,15 @@ class GeneticAlgorithm:
 
         # Fitness
         fig_fitness = self.plotSingleFitness(best_case_np[:, 0], average_case_np[:, 0], "Generación",
-                                             "Función de Fitness", "Evolución del algoritmo genético", choice)
+                                             "Función de Fitness", "Evolución del algoritmo genético", choice, False)
 
         # Distancia
         fig_distancia = self.plotSingleFitness(best_case_np[:, 1], average_case_np[:, 1], "Generación", "Distancia",
-                               "Evolución del algoritmo genético", choice)
+                               "Evolución del algoritmo genético", choice, True)
 
         # Torque
         fig_torque = self.plotSingleFitness(best_case_np[:, 2], average_case_np[:, 2], "Generación", "Torque",
-                               "Evolución del algoritmo genético", choice)
+                               "Evolución del algoritmo genético", choice, False)
 
         # plt.show()
         self._graphs_fitness = [fig_fitness, fig_distancia, fig_torque]
