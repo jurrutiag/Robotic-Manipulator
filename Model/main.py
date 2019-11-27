@@ -14,7 +14,7 @@ if __name__ == "__main__":
     # np.random.seed(0) # for testing
 
     # Select a running option.
-    options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling', 'Render', 'Find Pareto Frontier']
+    options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling', 'Render', 'Find Pareto Frontier', 'Tune Parámeters']
 
     # Cores for multiprocessing
     cores = 1
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     if run_on_command_line:
         option_string = input(
-            "Select one: Run All (1), Initialize Only (2), Profiling (3), Render (4), Find Pareto Frontier (5), Testing (Else): ")
+            "Select one: Run All (1), Initialize Only (2), Profiling (3), Render (4), Find Pareto Frontier (5), Tune Parámeters (6), Testing (Else): ")
         try:
             option = options[int(option_string)]
         except ValueError:
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
         if option in options[:2]:
             run_name = input("Enter the name for saving the run: ") if option == options[1] else 'json_test'
-            all_combinations = input("All combinations of parameters? (Y/N)") == "Y"
+            tune_parameters = input("Tune Parámeters? (Y/N)") == "Y"
     else:
         import sys
         sys.path.insert(1, '../InfoDisplay')
@@ -86,7 +86,7 @@ if __name__ == "__main__":
             parameters_variations = main_window_info['parameters_variations']
             cores = main_window_info['cores']
             run_name = main_window_info['run_name']
-            all_combinations = main_window_info['all_combinations']
+            tune_parameters = not main_window_info['all_combinations']
         elif option_num == 4:
             render_model_name = main_window_info['render_model_name']
             render_run = main_window_info['render_run']
@@ -100,7 +100,7 @@ if __name__ == "__main__":
                                       save_filename=run_name,
                                       parameters_variations=parameters_variations)
 
-        save_load_json.loadParameters(model_repetition, all_combinations=all_combinations)
+        save_load_json.loadParameters(model_repetition, tune_parameters=tune_parameters)
 
         runs = save_load_json.getRuns()
         print(f"Executing models on {cores} cores...")
@@ -112,7 +112,7 @@ if __name__ == "__main__":
                                      model_name=run_name)
         executer.run()
 
-        if not all_combinations:
+        if tune_parameters:
             with open(f'../Model/Trained Models/{run_name}/{run_name}.json') as f:
                 model_json = json.load(f)
                 inds = model_json['Best Individuals']
@@ -123,19 +123,31 @@ if __name__ == "__main__":
                 for ind in inds:
                     for key, val in ind['Info'].items():
                         if val != first_ind_info[key]:
-                            if f'{key} = {val}' in final_info_dictionary:
-                                final_info_dictionary[f'{key} = {val}'].append(ind['Multi Fitness'])
+                            # if f'{key} = {val}' in final_info_dictionary:
+                            #     final_info_dictionary[f'{key} = {val}'].append(ind['Multi Fitness'])
+                            # else:
+                            #     final_info_dictionary[f'{key} = {val}'] = [ind['Multi Fitness']]
+                            # #break
+
+                            key = str(key)
+                            val = str(val)
+                            if key in final_info_dictionary and val in final_info_dictionary[key]:
+                                final_info_dictionary[key][val].append(ind['Multi Fitness'])
+                            elif key in final_info_dictionary:
+                                final_info_dictionary[key] = {}
+                                final_info_dictionary[key][val] = [ind['Multi Fitness']]
                             else:
-                                final_info_dictionary[f'{key} = {val}'] = [ind['Multi Fitness']]
+                                final_info_dictionary[key] = {val: [ind['Multi Fitness']]}
                             break
                     else:
-                        if 'Initial' in final_info_dictionary:
-                            final_info_dictionary['Initial'].append(ind['Multi Fitness'])
-                        else:
-                            final_info_dictionary['Initial'] = [ind['Multi Fitness']]
+                        initial = [ind['Multi Fitness']]
 
                 for key, val in final_info_dictionary.items():
-                    final_info_dictionary[key] = np.mean(val, axis=0).tolist()
+                    default_val = first_ind_info[key]
+                    final_info_dictionary[key][str(default_val)] = initial
+
+                    for keyNum, valNum in final_info_dictionary[key].items():
+                        final_info_dictionary[key][keyNum] = np.mean(valNum, axis=0).tolist()
 
                 with open(f'../Model/Trained Models/{run_name}/{run_name}_mfitnesses_dict.json', 'w') as f:
                     json.dump(final_info_dictionary, f)

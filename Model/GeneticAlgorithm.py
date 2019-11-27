@@ -546,7 +546,7 @@ class GeneticAlgorithm:
         fitnesses = [ind.getFitness() for ind in self._population]
         sep_fitnesses = [ind.getMultiFitness() for ind in self._population]
 
-        self._best_case.append(np.concatenate(([np.max(fitnesses)], np.min(sep_fitnesses, axis=0))))
+        self._best_case.append(np.concatenate(([np.max(fitnesses)], sep_fitnesses[np.argmax(fitnesses)])))
         self._average_case.append(np.concatenate(([np.mean(fitnesses)], np.mean(sep_fitnesses, axis=0))))
 
     def plotSingleFitness(self, best, average, xlab, ylab, title, choice):
