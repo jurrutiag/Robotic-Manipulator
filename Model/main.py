@@ -7,7 +7,6 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from JSONSaveLoad import JSONSaveLoad
     from MultiCoreExecuter import MultiCoreExecuter
-    import cProfile
     import json
 
     ## Configurations
@@ -158,6 +157,7 @@ if __name__ == "__main__":
 
     # Profiling
     elif option == options[3]:
+        import cProfile
         print("Run the following commands to see the profiling on the interface:")
         print("python -m cProfile -o main_profiling.cprof main.py")
         print("pyprof2calltree -k -i main_profiling.cprof")
