@@ -20,9 +20,6 @@ if __name__ == "__main__":
     # Cores for multiprocessing
     cores = 1
 
-    # Show info on dedicated screen
-    dedicated_screen = True
-
     # Manipulator parameters
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
@@ -112,7 +109,7 @@ if __name__ == "__main__":
                                      manipulator,
                                      save_load_json,
                                      cores=cores,
-                                     dedicated_screen=dedicated_screen,
+                                     dedicated_screen=not run_on_command_line,
                                      model_name=run_name)
         executer.run()
 
