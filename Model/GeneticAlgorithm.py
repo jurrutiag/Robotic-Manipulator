@@ -1,6 +1,10 @@
 import math
 import numpy as np
+
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 import Individual
 import FitnessFunction
 import time
@@ -135,7 +139,6 @@ class GeneticAlgorithm:
         self._in_queue = None
         self._out_queue = None
         if self._cores > 1:
-
             self._processes = []
             self._in_queue = multiprocessing.Queue()
             self._out_queue = multiprocessing.Queue()

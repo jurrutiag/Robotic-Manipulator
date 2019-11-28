@@ -24,34 +24,65 @@ if __name__ == "__main__":
     manipulator_mass = [1, 1, 1]
 
     # Parameters to change on the json
+    # parameters_variations = {
+    #     "cores": [4],
+    #     "cross_individual_prob": [0.6, 0.2, 0.4, 0.8],
+    #     "cross_joint_prob": [0.5, 0.25, 0.75],
+    #     "desired_position": [[5, 5, 5]],
+    #     "distance_error_ponderation": [1],
+    #     "elitism_size": [10, 8, 12, 15],
+    #     "exponential_initialization": [False],
+    #     "fitness_threshold": [1],
+    #     "generation_for_print": [10],
+    #     "generation_threshold": [2000],
+    #     "generations_progress_threshold": [50],
+    #     "individuals_to_display": [5],
+    #     "mut_individual_prob": [0.5, 0.2, 0.6, 0.8],
+    #     "mut_joint_prob": [0.5, 0.25, 0.75],
+    #     "niche_sigma": [1],
+    #     "pairing_prob": [0.5],
+    #     "pareto_tournament_size": [5],
+    #     "pop_size": [100, 50, 150],
+    #     "print_data": [True],
+    #     "progress_threshold": [1],
+    #     "rank_probability": [0.5, 0.4, 0.6],
+    #     "rate_of_selection": [0.3, 0.2, 0.4],
+    #     "sampling_points": [20],
+    #     "selection_method": [[0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0.8, 0.2], [0, 0.2, 0.6, 0.2]],
+    #     "torques_error_ponderation": [0.1, 0.05, 0.3],
+    #     "torques_ponderations": [[1, 1, 1, 1]],
+    #     "total_time": [5],
+    #     "velocity_error_ponderation": [0.1, 0.01, 0.05]
+    # }
     parameters_variations = {
-        "desired_position": [[5, 5, 5]],
         "cores": [4],
-        "pop_size": [100],
-        "cross_individual_prob": [0.8],
-        "mut_individual_prob": [0.5],
-        "cross_joint_prob": [0.25],
-        "mut_joint_prob": [0.25],
-        "pairing_prob": [0.5],
-        "sampling_points": [10],
-        "torques_ponderations": [[1, 1, 1, 1]],
-        "generation_threshold": [100],
-        "fitness_threshold": [1],
-        "progress_threshold": [1],
-        "generations_progress_threshold": [50],
+        "cross_individual_prob": [0.6],
+        "cross_joint_prob": [0.5],
+        "desired_position": [[5, 5, 5]],
         "distance_error_ponderation": [1],
-        "torques_error_ponderation": [0.1],
-        "velocity_error_ponderation": [0],
-        "rate_of_selection": [0.3],
-        "elitism_size": [5],
-        "selection_method": [[0, 0, 0.7, 0.3]],
-        "rank_probability": [0.5],
-        "pareto_tournament_size": [3],
-        "niche_sigma": [0.5],
-        "generation_for_print": [10],
+        "elitism_size": [10],
         "exponential_initialization": [False],
+        "fitness_threshold": [1],
+        "generation_for_print": [10],
+        "generation_threshold": [2000],
+        "generations_progress_threshold": [50],
+        "individuals_to_display": [5],
+        "mut_individual_prob": [0.5],
+        "mut_joint_prob": [0.5],
+        "niche_sigma": [1],
+        "pairing_prob": [0.5],
+        "pareto_tournament_size": [5],
+        "pop_size": [100],
+        "print_data": [True],
+        "progress_threshold": [1],
+        "rank_probability": [0.5],
+        "rate_of_selection": [0.3],
+        "sampling_points": [20],
+        "selection_method": [[0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0.8, 0.2], [0, 0.2, 0.6, 0.2]],
+        "torques_error_ponderation": [0.1, 0.05, 0.3],
+        "torques_ponderations": [[1, 1, 1, 1]],
         "total_time": [5],
-        "individuals_to_display": [5]
+        "velocity_error_ponderation": [0.1, 0.01, 0.05]
     }
 
     model_repetition = 1
@@ -73,6 +104,10 @@ if __name__ == "__main__":
         if option in options[:2]:
             run_name = input("Enter the name for saving the run: ") if option == options[1] else 'json_test'
             tune_parameters = input("Tune Parámeters? (Y/N)") == "Y"
+            if tune_parameters:
+                continue_tuning = input("Continue tuning? (Y/N)") == "Y"
+            else:
+                continue_tuning = False
     else:
         import sys
         sys.path.insert(1, '../InfoDisplay')
@@ -100,7 +135,7 @@ if __name__ == "__main__":
                                       save_filename=run_name,
                                       parameters_variations=parameters_variations)
 
-        save_load_json.loadParameters(model_repetition, tune_parameters=tune_parameters)
+        save_load_json.loadParameters(model_repetition, tune_parameters=tune_parameters, continue_tuning=continue_tuning)
 
         runs = save_load_json.getRuns()
         print(f"Executing models on {cores} cores...")
@@ -128,13 +163,14 @@ if __name__ == "__main__":
                             # else:
                             #     final_info_dictionary[f'{key} = {val}'] = [ind['Multi Fitness']]
                             # #break
+                            if key not in final_info_dictionary:
+                                final_info_dictionary[key] = {}
 
                             key = str(key)
                             val = str(val)
                             if key in final_info_dictionary and val in final_info_dictionary[key]:
                                 final_info_dictionary[key][val].append(ind['Multi Fitness'])
                             elif key in final_info_dictionary:
-                                final_info_dictionary[key] = {}
                                 final_info_dictionary[key][val] = [ind['Multi Fitness']]
                             else:
                                 final_info_dictionary[key] = {val: [ind['Multi Fitness']]}
@@ -213,3 +249,45 @@ if __name__ == "__main__":
                 dominants.append(fit_id)
 
         print("Dominant ids: ", *dominants)
+
+    elif option == options[6]:
+        run_name = input("Enter Run name: ")
+        with open(f'../Model/Trained Models/{run_name}/{run_name}.json') as f:
+            model_json = json.load(f)
+            inds = model_json['Best Individuals']
+            first_ind_info = inds[0]['Info']
+
+            final_info_dictionary = {}
+
+            for ind in inds:
+                for key, val in ind['Info'].items():
+                    if val != first_ind_info[key]:
+                        # if f'{key} = {val}' in final_info_dictionary:
+                        #     final_info_dictionary[f'{key} = {val}'].append(ind['Multi Fitness'])
+                        # else:
+                        #     final_info_dictionary[f'{key} = {val}'] = [ind['Multi Fitness']]
+                        # #break
+                        if key not in final_info_dictionary:
+                            final_info_dictionary[key] = {}
+
+                        key = str(key)
+                        val = str(val)
+                        if key in final_info_dictionary and val in final_info_dictionary[key]:
+                            final_info_dictionary[key][val].append(ind['Multi Fitness'])
+                        elif key in final_info_dictionary:
+                            final_info_dictionary[key][val] = [ind['Multi Fitness']]
+                        else:
+                            final_info_dictionary[key] = {val: [ind['Multi Fitness']]}
+                        break
+                else:
+                    initial = [ind['Multi Fitness']]
+
+            for key, val in final_info_dictionary.items():
+                default_val = first_ind_info[key]
+                final_info_dictionary[key][str(default_val)] = initial
+
+                for keyNum, valNum in final_info_dictionary[key].items():
+                    final_info_dictionary[key][keyNum] = np.mean(valNum, axis=0).tolist()
+
+            with open(f'../Model/Trained Models/{run_name}/{run_name}_mfitnesses_dict.json', 'w') as f:
+                json.dump(final_info_dictionary, f)
