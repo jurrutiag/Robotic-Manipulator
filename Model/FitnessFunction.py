@@ -26,21 +26,15 @@ class FitnessFunction:
         positions = self.getPositions(individual)
         distance_error = np.linalg.norm(self._desired_position - positions[-1][3], ord=2)
 
-        if self._velocity_error_ponderation != 0:
-            angVelocities = self.getAngularVelocities(individual)
-            velocity_error = np.linalg.norm(angVelocities)
-        else:
-            velocity_error = 0
+        angVelocities = self.getAngularVelocities(individual)
+        velocity_error = np.linalg.norm(angVelocities)
 
-        if self._torques_error_ponderation != 0:
-            angAccelerations = self.getAngularAccelerations(individual)
+        angAccelerations = self.getAngularAccelerations(individual)
 
-            inertias = self.getInertias(positions)
-            torques = self.getTorques(angAccelerations, inertias, positions, individual)
+        inertias = self.getInertias(positions)
+        torques = self.getTorques(angAccelerations, inertias, positions, individual)
 
-            torques_error = torques @ np.array(self._torques_ponderations)
-        else:
-            torques_error = 0
+        torques_error = torques @ np.array(self._torques_ponderations)
 
         individual.setMultiFitness(np.array([distance_error, torques_error, velocity_error]))
         individual.setFitness(1 / (

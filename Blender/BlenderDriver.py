@@ -105,7 +105,6 @@ if __name__ == "__main__":
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
-    models_batch_name = "json_test"
     with open("../Blender/BlenderConfig.json") as f:
         config = json.load(f)
         gene = config["Genes to Animate"]
@@ -116,28 +115,5 @@ if __name__ == "__main__":
     driver = BlenderDriver(gene, desired_position, manipulator_dimensions, seg=total_time)
     driver.execute()
 
-    #
-    # with open("../Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json") as f:
-    #     best_individuals = json.load(f)
-    #
-    #     for ind in best_individuals["Best Individuals"]:
-    #         if ind["Animate"]:
-    #             ind["Animate"] = False
-    #             desired_position = ind["Info"]["desired_position"]
-    #             test_individual = ind["Genes"][-1]
-    #             print(test_individual)
-    #
-    #             manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
-    #
-    #             driver = BlenderDriver(test_individual, desired_position, manipulator_dimensions)
-    #
-    #             driver.execute()
-    #             break
-    #     else:
-    #         print("No individual to animate...")
-    #         sys.exit(0)
-    # with open(
-    #     "../Model/Trained Models/" + models_batch_name + "/" + models_batch_name + ".json", 'w') as f:
-    #     json.dump(best_individuals, f)
 
 

@@ -13,6 +13,8 @@ import multiprocessing
 import pygmo as pg
 import itertools
 from DisplayHandler import DisplayHandler
+import sys
+from MultiCoreExecuter import MultiCoreExecuter
 from mpl_toolkits.mplot3d import Axes3D  # No borrar, es necesario
 
 
@@ -24,11 +26,11 @@ class GeneticAlgorithm:
                  desired_position=DEFAULT_POSITION,
                  print_module=None,
                  cores=1,
-                 pop_size=100,
-                 cross_individual_prob=0.6,
+                 pop_size=150,
+                 cross_individual_prob=0.4,
                  mut_individual_prob=0.5,
-                 cross_joint_prob=0.5,
-                 mut_joint_prob=0.5,
+                 cross_joint_prob=0.75,
+                 mut_joint_prob=0.25,
                  pairing_prob=0.5,
                  sampling_points=20,
                  torques_ponderations=(1, 1, 1, 1),
@@ -38,13 +40,13 @@ class GeneticAlgorithm:
                  generations_progress_threshold=50,
                  torques_error_ponderation=0.1,
                  distance_error_ponderation=1,
-                 velocity_error_ponderation=0.1,
-                 rate_of_selection=0.3,
-                 elitism_size=10,
-                 selection_method=[0, 1, 0, 0],
-                 rank_probability=0.5,
+                 velocity_error_ponderation=0,
+                 rate_of_selection=0.4,
+                 elitism_size=15,
+                 selection_method=[0, 0.2, 0.6, 0.2],
+                 rank_probability=0.4,
                  pareto_tournament_size=5,
-                 niche_sigma=100,
+                 niche_sigma=0.2,
                  generation_for_print=10,
                  print_data=True,
                  exponential_initialization=False,
@@ -81,7 +83,8 @@ class GeneticAlgorithm:
         self._generation_for_print = generation_for_print
         self._exponential_initialization = exponential_initialization
 
-        self._individuals_to_display = (np.linspace(1, generation_threshold, individuals_to_display, dtype=int) if individuals_to_display >= 2 else [pop_size])
+        #self._individuals_to_display = (np.linspace(1, generation_threshold, individuals_to_display, dtype=int) if individuals_to_display >= 2 else [pop_size])
+        self._individuals_to_display = individuals_to_display
 
         # Algorithm variables
 
@@ -130,6 +133,7 @@ class GeneticAlgorithm:
         self._graphs_fitness = []
         self._graphs_individuals = []
         self._quick_individuals_graphs = []
+        self._best_individuals_candidates = []
         self._best_individuals_list = []
         self._last_pareto_frontier = None
 
@@ -138,6 +142,7 @@ class GeneticAlgorithm:
         self._cores = cores
         self._in_queue = None
         self._out_queue = None
+
         if self._cores > 1:
             self._processes = []
             self._in_queue = multiprocessing.Queue()
@@ -174,12 +179,43 @@ class GeneticAlgorithm:
 
         while True:
 
+            # Algorithm interruption
+            if MultiCoreExecuter.INTERRUPTING_QUEUE is not None and not MultiCoreExecuter.INTERRUPTING_QUEUE.empty():
+                interrupting_info = MultiCoreExecuter.INTERRUPTING_QUEUE.get()
+                if interrupting_info == "exit":
+                    print("Interrupted...")
+                    self.buryProcesses()
+                    sys.exit(0)
+
+            # if self._generation in self._individuals_to_display:
+            #     self.graphIndividual()
+            #     self._best_individuals_list.append([self._best_individual.getGenes().tolist(), self._generation])
+            if self._generation % 2 == 0 or self._generation in [1, self._generation_threshold]:
+                self._best_individuals_candidates.append([self._best_individual.getGenes().tolist(), self._generation, self._best_individual.getFitness()])
+
             self._display_handler.updateDisplay()
 
             # Check for termination condition
             if self.terminationCondition():
                 self._total_training_time = time.time() - self._start_time
                 self.findBestIndividual()
+
+                # Get individuals to plot
+                max_fitness = self.getBestIndividual().getFitness()
+                each_fitness_percentage = 1 / (self._individuals_to_display + 1)
+                current_percentage = each_fitness_percentage
+                for ind in self._best_individuals_candidates:
+                    if ind[1] in [1, self._generation_threshold]:
+                        self._best_individuals_list.append(ind)
+                        self.graphIndividual(ind[0], ind[1])
+                        continue
+
+                    if ind[2] >= max_fitness * current_percentage:
+                        self._best_individuals_list.append(ind)
+                        self.graphIndividual(ind[0], ind[1])
+                        current_percentage += each_fitness_percentage
+                print(self._best_individuals_list)
+
 
                 self._display_handler.updateDisplay(terminate=True)
 
@@ -589,21 +625,21 @@ class GeneticAlgorithm:
 
         # Torque
         fig_torque = self.plotSingleFitness(best_case_np[:, 2], average_case_np[:, 2], "Generación", "Torque",
-                               "Evolución del algoritmo genético", choice, False)
+                               "Evolución del algoritmo genético", choice, True)
 
         # plt.show()
         self._graphs_fitness = [fig_fitness, fig_distancia, fig_torque]
 
         # self._graphs_fitness.append([fig_fitness, fig_distancia, fig_torque])
 
-    def graphIndividual(self, quick_graph=False):
+    def graphIndividual(self, individual_genes, generation, quick_graph=False):
 
         for ind_fig in self._quick_individuals_graphs:
             plt.close(ind_fig)
 
         fig_best_individual, ax_best_individual = plt.subplots(ncols=1, nrows=1)
 
-        for ang in np.transpose(self._best_individual.getGenes()):
+        for ang in np.transpose(individual_genes):
             ax_best_individual.plot(ang)
 
         ax_best_individual.legend([r"$\theta_1$", r"$\theta_2$", r"$\theta_3$", r"$\theta_4$"])
@@ -613,9 +649,9 @@ class GeneticAlgorithm:
 
         # plt.show()
 
-        self._quick_individuals_graphs = [fig_best_individual, self._generation]
+        self._quick_individuals_graphs = [fig_best_individual, generation]
         if not quick_graph:
-            self._graphs_individuals.append([fig_best_individual, self._generation])
+            self._graphs_individuals.append([fig_best_individual, generation])
 
 
     def printGenerationData(self):
@@ -696,7 +732,7 @@ class GeneticAlgorithm:
     def updateInfo(self, terminate=False):
         if self._info_queue is not None:
             self.graph(2)
-            self.graphIndividual(quick_graph=True)
+            self.graphIndividual(self._best_individual.getGenes(), self._generation, quick_graph=True)
             self.plotParetoFrontier()
 
             info = {

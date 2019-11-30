@@ -1,5 +1,5 @@
 import json
-from GeneticAlgorithm import GeneticAlgorithm
+import GeneticAlgorithm
 import multiprocessing
 import time
 import os
@@ -8,20 +8,23 @@ from PrintModule import PrintModule
 
 class MultiCoreExecuter:
 
-    def __init__(self, runs, manipulator, json_handler, cores=4, dedicated_screen=False, model_name='json_test'):
+    INTERRUPTING_QUEUE = multiprocessing.Queue()
+
+    def __init__(self, runs, manipulator, json_handler, processes=4, dedicated_screen=False, model_name='json_test'):
 
         self._manipulator = manipulator
         self._runs = runs
         self._json_handler = json_handler
-        self._cores = cores
+        self._processes = processes
 
         self._dedicated_screen = dedicated_screen
+
         if dedicated_screen:
             self._info_queue = multiprocessing.Queue()
             import sys
             sys.path.insert(1, '../InfoDisplay')
             from InformationWindow import runInfoDisplay
-            self._info_process = multiprocessing.Process(target=runInfoDisplay, args=(self._info_queue, model_name))
+            self._info_process = multiprocessing.Process(target=runInfoDisplay, args=(self._info_queue, model_name, MultiCoreExecuter.INTERRUPTING_QUEUE))
             self._info_process.start()
 
     def run(self):
@@ -30,14 +33,14 @@ class MultiCoreExecuter:
         print_module.clear()
 
         t0 = time.time()
-        if self._cores == 1:
+        if self._processes == 1:
             for i, run in enumerate(self._runs):
                 print_module.print(f"Run number {i + 1}, with parameters: " + json.dumps(run), position="Current Information", color="red")
-                GA = GeneticAlgorithm(self._manipulator, print_module=print_module, model_process_and_id=(1, i + 1), **run)
+                GA = GeneticAlgorithm.GeneticAlgorithm(self._manipulator, print_module=print_module, model_process_and_id=(1, i + 1), **run)
                 self.GAExecuter(GA)
 
         else:
-            print_module.setCores(self._cores)
+            print_module.setCores(self._processes)
 
             print_module.assignLock(multiprocessing.Lock())
             runs_queue = multiprocessing.Queue()
@@ -47,9 +50,9 @@ class MultiCoreExecuter:
 
             processes = []
 
-            print_module.print(f"Running normal algorithm, multicore models with {self._cores} cores...", position="Current Information")
+            print_module.print(f"Running normal algorithm, multicore models with {self._processes} cores...", position="Current Information")
 
-            for i in range(self._cores):
+            for i in range(self._processes):
                 p = multiprocessing.Process(target=self.notBatchesExecuter, args=(runs_queue, print_module, i))
                 processes.append(p)
                 p.start()
@@ -75,6 +78,6 @@ class MultiCoreExecuter:
             run = q_runs.get()
             if not self._dedicated_screen:
                 print_module.print(f"Running process {os.getpid()} on run {i} of this process.", color='red', position="Quick Information")
-            GA = GeneticAlgorithm(self._manipulator, print_module=print_module, model_process_and_id=(os.getpid(), i), **run)
+            GA = GeneticAlgorithm.GeneticAlgorithm(self._manipulator, print_module=print_module, model_process_and_id=(os.getpid(), i), **run)
             self.GAExecuter(GA)
             i += 1

@@ -21,6 +21,7 @@ class DisplayHandler:
             self._GA.graph(2)
 
         else:
+
             # Information is printed on the terminal
             if self._generation_for_print and self._GA.getGeneration() % self._generation_for_print == 0 and self._print_data:
                 if self._console_print:

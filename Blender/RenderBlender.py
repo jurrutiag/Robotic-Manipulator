@@ -3,7 +3,7 @@ import json
 import time
 
 
-def render(render_model_name, render_run, render_individuals):
+def render(render_model_name, render_run, render_individuals, all_inds=False):
 
     fps = 30
 
@@ -17,8 +17,9 @@ def render(render_model_name, render_run, render_individuals):
     runs = the_json["Best Individuals"] if (render_run == -1) else [the_json["Best Individuals"][render_run]]
 
     for run in runs:
+
         # individuals = [run["Genes"][-1]] if runs_to_render else run["Genes"]
-        individuals = [run["Genes"][i] for i in render_individuals]
+        individuals = [run["Genes"][i] for i in render_individuals] if (render_run != -1) else run["Genes"]
         for ind in individuals:
             with open("../Blender/BlenderConfig.json", "w") as f:
                 tot_time = run["Info"]["total_time"]

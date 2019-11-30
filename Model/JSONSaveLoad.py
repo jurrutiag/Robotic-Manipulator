@@ -33,7 +33,7 @@ class JSONSaveLoad:
         self._parameters_variations = parameters_variations
         self._runs = None
 
-    def loadParameters(self, repetitions=1, tune_parameters=False, continue_tuning=False):
+    def loadParameters(self, tune_parameters=False, continue_tuning=False, repetitions=1):
         runs = []
 
         default_parameters = self._GA.getAlgorithmInfo()
@@ -48,11 +48,10 @@ class JSONSaveLoad:
                 for key, val in run_change.items():
                     run[key] = val
                 runs.append(run)
-            final_runs = [r for r in runs for i in range(repetitions)]
+            final_runs = [run for run in runs for _ in range(repetitions)]
         else:
             first_param_run = {key: val[0] for key, val in zip(keys, values)}
             final_runs = []
-            repetitions = 2
 
             if not continue_tuning:
                 for _ in range(repetitions):

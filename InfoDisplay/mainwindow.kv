@@ -49,11 +49,11 @@
             id: cores
         Label:
             size_hint: 0.7, 1
-            text: 'All Combinations'
+            text: 'Tune Parameters'
         CheckBox:
             size_hint: 0.2, 1
-            active: True
-            on_active: app.allCombinationsCheckBox(*args)
+            active: False
+            on_active: app.tuneParametersCheckBox(*args)
     GridLayout:
         cols: 2
         size_hint: 1, 0.08
@@ -64,6 +64,18 @@
             id: use_defaults
             size_hint: 0.2, 1
             on_active: app.on_checkbox_active(*args)
+
+    GridLayout:
+        cols: 2
+        size_hint: 1, 0.08
+        Label:
+            text: 'Repetitions:'
+            size_hint: 0.5, 1
+        TextInput:
+            multiline: False
+            text: '1'
+            size_hint: 0.2, 1
+            id: repetitions
 
     ScrollView:
         GridLayout:
@@ -100,29 +112,44 @@
         cols: 1
         id: render_selections
 
+
         GridLayout:
             cols: 2
 
-            size_hint: 1, 0.16
+            size_hint: 1, 0.08
 
             Label:
-                text: 'Select Run:'
-            Spinner:
-                id: run_selection
-                on_text: app.selectedRun(*args)
-            Label:
-                text: 'Select Individuals:'
-            Button:
-                text: 'Select All'
-                on_press: app.selectAllIndividuals()
+                text: 'All Runs:'
+            CheckBox:
+                id: use_defaults
+                on_active: app.allRunsCheckBox(*args)
 
-        ScrollView:
+        GridLayout:
+            cols: 1
+            id: individuals_layout
+
             GridLayout:
-                size_hint_y: None
                 cols: 2
-                row_default_height: root.height * 0.06
-                height: self.minimum_height
-                id: individuals_selection
+                size_hint: 1, 0.16
+                Label:
+                    text: 'Select Run:'
+                Spinner:
+                    id: run_selection
+                    on_text: app.selectedRun(*args)
+                Label:
+                    text: 'Select Individuals:'
+                Button:
+                    text: 'Select All'
+                    on_press: app.selectAllIndividuals()
+
+
+            ScrollView:
+                GridLayout:
+                    size_hint_y: None
+                    cols: 2
+                    row_default_height: root.height * 0.06
+                    height: self.minimum_height
+                    id: individuals_selection
 
 
 

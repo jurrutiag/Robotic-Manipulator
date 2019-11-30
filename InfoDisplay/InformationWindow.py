@@ -121,8 +121,15 @@ class InformationWindow(App):
         super(InformationWindow, self).__init__(**kwargs)
         self.queue = queue
         self.title = 'Model: ' + title
+        self.interrupted = False
+
+    def on_request_close(self, *args):
+        self.interrupted = True
+        self.stop()
+        return True
 
     def build(self):
+        Window.bind(on_request_close=self.on_request_close)
         w_width = 1080
         w_height = 607
 
@@ -141,15 +148,17 @@ class MainWindow(App):
         self.default_params = default_params
         self.text_inputs = {}
         self.use_defaults = False
-        self.all_combinations = True
+        self.tune_parameters = True
         self.run_window = None
         self.cores = 1
+        self.repetitions = 1
 
         # Render
         self.render_window = None
         self.individuals_checkboxes = []
         self.render_model_name = ''
         self.render_run = 0
+        self.all_runs = False
 
         self.information = {}
 
@@ -202,17 +211,24 @@ class MainWindow(App):
             except ValueError:
                 self.cores = 1
 
+            try:
+                self.repetitions = int(self.run_window.ids.repetitions.text)
+            except ValueError:
+                self.repetitions = 1
+
             self.information = {
                 'parameters_variations': self.parameters_variations,
                 'cores': self.cores,
                 'run_name': self.run_window.ids.run_name.text,
-                'all_combinations': self.all_combinations
+                'tune_parameters': self.tune_parameters,
+                'repetitions': self.repetitions
             }
         elif self.chosen_option == 4:
             self.information = {
                 'render_model_name': self.render_model_name,
                 'render_run': self.render_run,
-                'render_individuals': [i for i, val in enumerate([chbox.active for chbox in self.individuals_checkboxes]) if val]
+                'render_individuals': [i for i, val in enumerate([chbox.active for chbox in self.individuals_checkboxes]) if val],
+                'all_runs': self.all_runs
             }
 
         self.information['final_option'] = self.chosen_option
@@ -223,8 +239,12 @@ class MainWindow(App):
         self.use_defaults = value
         self.showParameters()
 
-    def allCombinationsCheckBox(self, checkbox, value):
-        self.all_combinations = value
+    def allRunsCheckBox(self, checkbox, value):
+        self.render_window.ids.individuals_layout.disabled = value
+        self.all_runs = value
+
+    def tuneParametersCheckBox(self, checkbox, value):
+        self.tune_parameters = value
 
     def runWindow(self):
         self.run_window = Factory.RunWindow()
@@ -277,9 +297,12 @@ class MainWindow(App):
                 chbox.active = True
 
 
-def runInfoDisplay(queue, title):
+def runInfoDisplay(queue, title, interrupting_queue):
     info_window = InformationWindow(queue=queue, title=title)
     info_window.run()
+
+    if info_window.interrupted and interrupting_queue is not None:
+        interrupting_queue.put("exit")
 
 
 def runMainWindow(default_params):
