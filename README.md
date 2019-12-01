@@ -13,7 +13,15 @@ The Model folder contains 'main.py', the file that can run the algorithm importi
 
 # Pre installations
 
-Please install in a virtual environments the file requirements.txt with the following command from the root folder:
+Install virtual environment from pip and then create a virtual environment called "env" on the project folder and activate it using the following commands:
+
+```
+py -m pip install --user virtualenv
+py -m venv env
+.\env\Scripts\activate
+```
+
+Install, with the virtual environment activated, the file requirements.txt with the following command from the root folder:
 
 ```
 pip install -r requirements.txt
