@@ -13,17 +13,16 @@ The Model folder contains 'main.py', the file that can run the algorithm importi
 
 # Pre installations
 
-You must have the following libraries:
+Please install in a virtual environments the file requirements.txt with the following command from the root folder:
 
-Pygmo
+```
+pip install -r requirements.txt
+```
 
-For visualization with kivy, the following commands are necessary:
-
-pip install kivy
-python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
-pip install kivy-garden
+Then, in order to be able to visualize the data with the UI, please run:
+```
 garden install matplotlib
-
+```
 
 ## Authors
 * Javier Mosnaim
