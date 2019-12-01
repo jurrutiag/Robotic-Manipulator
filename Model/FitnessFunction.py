@@ -1,4 +1,4 @@
-import RoboticManipulator
+import Model.RoboticManipulator
 import numpy as np
 import math
 

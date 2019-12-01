@@ -3,7 +3,7 @@ import datetime
 import itertools
 import os
 import matplotlib.pyplot as plt
-
+from definitions import MODEL_TRAININGS_DIR
 
 class JSONSaveLoad:
 
@@ -14,19 +14,19 @@ class JSONSaveLoad:
 
         # Filenames
         self._save_filename = save_filename
-        self._trained_models_dir = "Trained Models/" + self._save_filename
+        self._trained_models_dir = os.path.join(MODEL_TRAININGS_DIR, self._save_filename)
 
         if not os.path.exists(self._trained_models_dir):
             os.makedirs(self._trained_models_dir)
-            os.makedirs(self._trained_models_dir + "/Renders")
-            os.makedirs(self._trained_models_dir + "/Graphs")
-            os.makedirs(self._trained_models_dir + "/Graphs/Individuals")
-            os.makedirs(self._trained_models_dir + "/Graphs/Torque")
-            os.makedirs(self._trained_models_dir + "/Graphs/Fitness")
-            os.makedirs(self._trained_models_dir + "/Graphs/Distance")
-            with open(self._trained_models_dir + "/" + self._save_filename + ".json", 'w') as f:
+            os.makedirs(os.path.join(self._trained_models_dir, "Renders"))
+            os.makedirs(os.path.join(self._trained_models_dir, "Graphs"))
+            os.makedirs(os.path.join(self._trained_models_dir, "Graphs", "Individuals"))
+            os.makedirs(os.path.join(self._trained_models_dir, "Graphs", "Torque"))
+            os.makedirs(os.path.join(self._trained_models_dir, "Graphs", "Fitness"))
+            os.makedirs(os.path.join(self._trained_models_dir, "Graphs", "Distance"))
+            with open(os.path.join(self._trained_models_dir, self._save_filename + ".json"), 'w') as f:
                 pass
-            with open(self._trained_models_dir + "/" + self._save_filename + ".json", 'w') as f:
+            with open(os.path.join(self._trained_models_dir, self._save_filename + ".json"), 'w') as f:
                 json.dump({"Best Individuals": [], "Index": 0}, f)
 
         # GA
@@ -76,7 +76,7 @@ class JSONSaveLoad:
 
         new_individual = {}
 
-        with open(self._trained_models_dir + "/" + self._save_filename + ".json") as f:
+        with open(os.path.join(self._trained_models_dir, self._save_filename + ".json")) as f:
             individuals_json = json.load(f)
             index = individuals_json["Index"]
 
@@ -89,10 +89,10 @@ class JSONSaveLoad:
             ind_graphs = GA.getIndividualsGraphs()
 
             for graph in ind_graphs:
-                if not os.path.exists(self._trained_models_dir + f"/Graphs/Individuals/{index}"):
-                    os.makedirs(self._trained_models_dir + f"/Graphs/Individuals/{index}")
+                if not os.path.exists(os.path.join(self._trained_models_dir, "Graphs",  "Individuals", index)):
+                    os.makedirs(os.path.join(self._trained_models_dir, "Graphs",  "Individuals", index))
 
-                graph[0].savefig(self._trained_models_dir + f"/Graphs/Individuals/{index}/best_individual_graph_" + str(index) + "_gen_" + str(graph[1]))
+                graph[0].savefig(os.path.join(self._trained_models_dir, "Graphs",  "Individuals", index, "best_individual_graph_" + str(index) + "_gen_" + str(graph[1])))
 
             plt.close('all')
 
@@ -109,6 +109,6 @@ class JSONSaveLoad:
             new_individual["Animate"] = False
             best_individuals.append(new_individual)
 
-        with open(self._trained_models_dir + "/" + self._save_filename + ".json", 'w') as f:
+        with open(os.path.join(self._trained_models_dir, self._save_filename + ".json"), 'w') as f:
             json.dump(individuals_json, f)
 

@@ -14,6 +14,7 @@ import ast
 import json
 from kivy.factory import Factory
 import os
+from definitions import PARAMETERS_VARIATIONS_INFO_DIR, MODEL_TRAININGS_DIR
 
 
 class TabWithInfo(TabbedPanelItem):
@@ -165,7 +166,7 @@ class MainWindow(App):
         for key, value in self.default_params.items():
             self.default_params[key] = [value]
 
-        with open('../InfoDisplay/parameters_variations.json', 'r') as f:
+        with open(PARAMETERS_VARIATIONS_INFO_DIR, 'r') as f:
             self.parameters_variations = json.load(f)
 
     def build(self):
@@ -203,7 +204,7 @@ class MainWindow(App):
         if self.chosen_option == 1:
             self.parameters_variations = {key: ast.literal_eval('[' + t_input.text + ']') for key, t_input in self.text_inputs.items()}
 
-            with open('../InfoDisplay/parameters_variations.json', 'w') as f:
+            with open(PARAMETERS_VARIATIONS_INFO_DIR, 'w') as f:
                 json.dump(self.parameters_variations, f)
 
             try:
@@ -264,7 +265,7 @@ class MainWindow(App):
     def renderWindow(self):
         self.render_window = Factory.RenderWindow()
         self.root.ids.info_layout.add_widget(self.render_window)
-        models = [name for name in os.listdir("../Model/Trained Models") if os.path.isdir(f'../Model/Trained Models/{name}')]
+        models = [name for name in os.listdir(MODEL_TRAININGS_DIR) if os.path.isdir(os.path.join(MODEL_TRAININGS_DIR, name))]
 
         self.render_window.ids.model_selection.values = models
 
@@ -272,7 +273,7 @@ class MainWindow(App):
         self.render_model_name = model
 
         self.render_window.ids.individuals_selection.clear_widgets()
-        amount_of_runs = len([name for name in os.listdir(f"../Model/Trained Models/{model}/Graphs/Individuals") if os.path.isdir(f'../Model/Trained Models/{model}/Graphs/Individuals/{name}')])
+        amount_of_runs = len([name for name in os.listdir(os.path.join(MODEL_TRAININGS_DIR, model, 'Graphs', 'Individuals')) if os.path.isdir(os.path.join(MODEL_TRAININGS_DIR, model, 'Graphs', 'Individuals', name))])
 
         self.render_window.ids.run_selection.values = list(map(str, sorted(range(amount_of_runs), reverse=True)))
 
@@ -280,7 +281,7 @@ class MainWindow(App):
         self.render_run = int(run)
 
         self.render_window.ids.individuals_selection.clear_widgets()
-        amount_of_individuals = len([name for name in os.listdir(f"../Model/Trained Models/{self.render_model_name}/Graphs/Individuals/{run}") if os.path.isfile(f'../Model/Trained Models/{self.render_model_name}/Graphs/Individuals/{run}/{name}')])
+        amount_of_individuals = len([name for name in os.listdir(os.path.join(MODEL_TRAININGS_DIR, self.render_model_name, 'Graphs', 'Individuals', run)) if os.path.isfile(os.path.join(MODEL_TRAININGS_DIR, self.render_model_name, 'Graphs', 'Individuals', run, name))])
 
         self.individuals_checkboxes = []
         for i in range(amount_of_individuals):

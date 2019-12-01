@@ -1,16 +1,16 @@
 import os
 import json
 import time
-
+from definitions import getModelDir, BLENDER_CONFIG_DIR, MODEL_TRAININGS_DIR
 
 def render(render_model_name, render_run, render_individuals, all_inds=False):
 
     fps = 30
 
-    with open(f"../Model/Trained Models/{render_model_name}/{render_model_name}.json") as f:
+    with open(getModelDir(render_model_name)) as f:
         the_json = json.load(f)
 
-    with open("../Blender/BlenderConfig.json") as f:
+    with open(BLENDER_CONFIG_DIR) as f:
         blender_config = json.load(f)
 
     # runs = the_json["Best Individuals"] if run_selected else [the_json["Best Individuals"][-1]]
@@ -21,14 +21,14 @@ def render(render_model_name, render_run, render_individuals, all_inds=False):
         # individuals = [run["Genes"][-1]] if runs_to_render else run["Genes"]
         individuals = [run["Genes"][i] for i in render_individuals] if (render_run != -1) else run["Genes"]
         for ind in individuals:
-            with open("../Blender/BlenderConfig.json", "w") as f:
+            with open(BLENDER_CONFIG_DIR, "w") as f:
                 tot_time = run["Info"]["total_time"]
                 blender_config["Desired Position"] = run["Info"]["desired_position"]
                 blender_config["Total time"] = tot_time
                 blender_config["Genes to Animate"] = ind[0]
                 json.dump(blender_config, f)
-            if not os.path.exists(f"../Model/Trained Models/Renders/{run['ID']}"):
-                os.makedirs(f"../Model/Trained Models/Renders/{run['ID']}")
+            if not os.path.exists(os.path.join(MODEL_TRAININGS_DIR, 'Renders', run['ID'])):
+                os.makedirs(os.path.join(MODEL_TRAININGS_DIR, 'Renders', run['ID']))
             render_path = f"{render_model_name}/Renders/{run['ID']}/individual_{run['ID']}_gen_{ind[1]}_"
             end_frame = fps * (tot_time + 1)
 

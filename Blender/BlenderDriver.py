@@ -100,12 +100,13 @@ if __name__ == "__main__":
     import numpy as np
     import RoboticManipulator
     import json
+    from definitions import BLENDER_CONFIG_DIR
 
     # np.random.seed(0)  # for testing
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
-    with open("../Blender/BlenderConfig.json") as f:
+    with open(BLENDER_CONFIG_DIR) as f:
         config = json.load(f)
         gene = config["Genes to Animate"]
         desired_position = config["Desired Position"]

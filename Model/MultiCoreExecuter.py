@@ -1,9 +1,9 @@
 import json
-import GeneticAlgorithm
+from Model import GeneticAlgorithm
 import multiprocessing
 import time
 import os
-from PrintModule import PrintModule
+from Model.PrintModule import PrintModule
 
 
 class MultiCoreExecuter:
@@ -21,9 +21,7 @@ class MultiCoreExecuter:
 
         if dedicated_screen:
             self._info_queue = multiprocessing.Queue()
-            import sys
-            sys.path.insert(1, '../InfoDisplay')
-            from InformationWindow import runInfoDisplay
+            from InfoDisplay.InformationWindow import runInfoDisplay
             self._info_process = multiprocessing.Process(target=runInfoDisplay, args=(self._info_queue, model_name, MultiCoreExecuter.INTERRUPTING_QUEUE))
             self._info_process.start()
 

@@ -5,16 +5,16 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-import Individual
-import FitnessFunction
+from Model import Individual
+from Model import FitnessFunction
 import time
-from PrintModule import PrintModule
+from Model.PrintModule import PrintModule
 import multiprocessing
 import pygmo as pg
 import itertools
-from DisplayHandler import DisplayHandler
+from Model.DisplayHandler import DisplayHandler
 import sys
-from MultiCoreExecuter import MultiCoreExecuter
+from Model.MultiCoreExecuter import MultiCoreExecuter
 from mpl_toolkits.mplot3d import Axes3D  # No borrar, es necesario
 
 

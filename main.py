@@ -200,7 +200,7 @@ def main(on_display):
 
     else:
         sys.path.insert(1, '../InfoDisplay')
-        from InformationWindow import runMainWindow
+        from InfoDisplay.InformationWindow import runMainWindow
         main_window_info = runMainWindow(GeneticAlgorithm(None).getAlgorithmInfo())
         if main_window_info == {}:
             sys.exit(1)
@@ -251,7 +251,7 @@ def main(on_display):
     elif option == options[4]:
 
         sys.path.insert(1, '../Blender')
-        from RenderBlender import render
+        from Blender.RenderBlender import render
 
         if run_on_command_line:
             render_model_name = input("Enter the model name: ")
@@ -281,12 +281,12 @@ def main(on_display):
 
 
 if __name__ == "__main__":
-    from GeneticAlgorithm import GeneticAlgorithm
-    from RoboticManipulator import RoboticManipulator
+    from Model.GeneticAlgorithm import GeneticAlgorithm
+    from Model.RoboticManipulator import RoboticManipulator
     import numpy as np
     import matplotlib.pyplot as plt
-    from JSONSaveLoad import JSONSaveLoad
-    from MultiCoreExecuter import MultiCoreExecuter
+    from Model.JSONSaveLoad import JSONSaveLoad
+    from Model.MultiCoreExecuter import MultiCoreExecuter
     import json
     import sys
 
