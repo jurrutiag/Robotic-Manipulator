@@ -13,17 +13,24 @@ The Model folder contains 'main.py', the file that can run the algorithm importi
 
 # Pre installations
 
-You must have the following libraries:
+Install virtual environment from pip and then create a virtual environment called "env" on the project folder and activate it using the following commands:
 
-Pygmo
+```
+py -m pip install --user virtualenv
+py -m venv env
+.\env\Scripts\activate
+```
 
-For visualization with kivy, the following commands are necessary:
+Install, with the virtual environment activated, the file requirements.txt with the following command from the root folder:
 
-pip install kivy
-python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
-pip install kivy-garden
+```
+pip install -r requirements.txt
+```
+
+Then, in order to be able to visualize the data with the UI, please run:
+```
 garden install matplotlib
-
+```
 
 ## Authors
 * Javier Mosnaim
