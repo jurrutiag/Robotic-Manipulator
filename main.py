@@ -177,6 +177,7 @@ def main(on_display):
 
     manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
     repetitions = 1
+    processes = 1
 
     if run_on_command_line:
         option_string = input(
