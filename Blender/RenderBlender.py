@@ -1,7 +1,7 @@
 import os
 import json
 import time
-from definitions import getModelDir, BLENDER_CONFIG_DIR, MODEL_TRAININGS_DIR
+from definitions import getModelDir, BLENDER_CONFIG_DIR, MODEL_TRAININGS_DIR, BLEND_FILE_DIR, BLENDER_DRIVER_DIR
 
 def render(render_model_name, render_run, render_individuals, all_inds=False):
 
@@ -27,8 +27,8 @@ def render(render_model_name, render_run, render_individuals, all_inds=False):
                 blender_config["Total time"] = tot_time
                 blender_config["Genes to Animate"] = ind[0]
                 json.dump(blender_config, f)
-            if not os.path.exists(os.path.join(MODEL_TRAININGS_DIR, 'Renders', run['ID'])):
-                os.makedirs(os.path.join(MODEL_TRAININGS_DIR, 'Renders', run['ID']))
+            if not os.path.exists(MODEL_TRAININGS_DIR + f"/Renders/{run['ID']}"):
+                os.makedirs(os.path.join(MODEL_TRAININGS_DIR, 'Renders', str(run['ID'])))
             render_path = f"{render_model_name}/Renders/{run['ID']}/individual_{run['ID']}_gen_{ind[1]}_"
             end_frame = fps * (tot_time + 1)
 
@@ -38,7 +38,7 @@ def render(render_model_name, render_run, render_individuals, all_inds=False):
 def renderWithPath(render_path, end_frame):
     print(f"Rendering {render_path}...")
     t0 = time.time()
-    render_base_command = f'blender ../Blender/mano_robotica.blend --background --python ../Blender/BlenderDriver.py -o \"//../Model/Trained Models/{render_path}\" -e {end_frame} -t 4 -a 1>nul'
+    render_base_command = f'blender \"{BLEND_FILE_DIR}\" --background --python \"{BLENDER_DRIVER_DIR}\" -o \"{os.path.join(MODEL_TRAININGS_DIR, render_path)}\" -e {end_frame} -t 4 -a 1>nul'
     os.system(render_base_command)
     print(f"Time taken: {time.time() - t0} s")
 

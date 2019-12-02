@@ -1,3 +1,14 @@
+from Model.GeneticAlgorithm import GeneticAlgorithm
+from Model.RoboticManipulator import RoboticManipulator
+import numpy as np
+import matplotlib.pyplot as plt
+from Model.JSONSaveLoad import JSONSaveLoad
+from Model.MultiCoreExecuter import MultiCoreExecuter
+import json
+import sys
+import os
+from definitions import getModelDir, getTuningDict
+
 def runAll(manipulator, run_name, parameters_variations, processes, run_on_command_line, tune_parameters=False, continue_tuning=False, repetitions=1):
     save_load_json = JSONSaveLoad(GA=GeneticAlgorithm(manipulator),
                                   save_filename=run_name,
@@ -33,7 +44,7 @@ def initializeOnly(manipulator):
     return fig_init
 
 def findDominantsFromModel(model):
-    with open(f"../Model/Trained Models/{model}/{model}.json") as f:
+    with open(getModelDir(model)) as f:
         the_json = json.load(f)
 
     multi_fitnesses = [(ind["ID"], ind["Multi Fitness"]) for ind in the_json["Best Individuals"]]
@@ -46,8 +57,10 @@ def findDominantsFromModel(model):
 
     return dominants
 
+
 def findDominantsFromTuning(run_name):
-    with open(f'../Model/Trained Models/{run_name}/{run_name}.json') as f:
+
+    with open(getModelDir(run_name)) as f:
         model_json = json.load(f)
         inds = model_json['Best Individuals']
         first_ind_info = inds[0]['Info']
@@ -89,7 +102,7 @@ def findDominantsFromTuning(run_name):
                 best_params[key].append((param_val, 1 / (
                             1 + np.array(multi_fitness) @ np.array([1, 0.1 * (1 / 256.79), 0.1 * (1 / 0.39)]))))
 
-    with open(f'../Model/Trained Models/{run_name}/{run_name}_mfitnesses_dict.json', 'w') as f:
+    with open(getTuningDict(run_name), 'w') as f:
         json.dump({"all": final_info_dictionary, "best": best_params}, f)
 
 
@@ -104,46 +117,16 @@ def main(on_display):
     options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling', 'Render', 'Find Pareto Frontier',
                'Tune Parámeters']
 
-    # Cores for multiprocessing
-    cores = 1
+    # Processes for multiprocessing
+    processes = 1
 
     # Manipulator parameters
     manipulator_dimensions = [5, 5, 5, 5]
     manipulator_mass = [1, 1, 1]
 
     # Parameters to change on the json
-    # parameters_variations = {
-    #     "cores": [4],
-    #     "cross_individual_prob": [0.6, 0.2, 0.4, 0.8],
-    #     "cross_joint_prob": [0.5, 0.25, 0.75],
-    #     "desired_position": [[5, 5, 5]],
-    #     "distance_error_ponderation": [1],
-    #     "elitism_size": [10, 8, 12, 15],
-    #     "exponential_initialization": [False],
-    #     "fitness_threshold": [1],
-    #     "generation_for_print": [10],
-    #     "generation_threshold": [2000],
-    #     "generations_progress_threshold": [50],
-    #     "individuals_to_display": [5],
-    #     "mut_individual_prob": [0.5, 0.2, 0.6, 0.8],
-    #     "mut_joint_prob": [0.5, 0.25, 0.75],
-    #     "niche_sigma": [1],
-    #     "pairing_prob": [0.5],
-    #     "pareto_tournament_size": [5],
-    #     "pop_size": [100, 50, 150],
-    #     "print_data": [True],
-    #     "progress_threshold": [1],
-    #     "rank_probability": [0.5, 0.4, 0.6],
-    #     "rate_of_selection": [0.3, 0.2, 0.4],
-    #     "sampling_points": [20],
-    #     "selection_method": [[0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0.8, 0.2], [0, 0.2, 0.6, 0.2]],
-    #     "torques_error_ponderation": [0.1, 0.05, 0.3],
-    #     "torques_ponderations": [[1, 1, 1, 1]],
-    #     "total_time": [5],
-    #     "velocity_error_ponderation": [0.1, 0.01, 0.05]
-    # }
     parameters_variations = {
-        "cores": [4],
+        "cores": [8],
         "cross_individual_prob": [0.4],
         "cross_joint_prob": [0.75],
         "desired_position": [[5, 5, 5]],
@@ -165,7 +148,7 @@ def main(on_display):
         "progress_threshold": [1],
         "rank_probability": [0.4],
         "rate_of_selection": [0.4],
-        "sampling_points": [20],
+        "sampling_points": [20, 30, 50],
         "selection_method": [[0, 0.2, 0.6, 0.2]],
         "torques_error_ponderation": [0.1],
         "torques_ponderations": [[1, 1, 1, 1]],
@@ -177,7 +160,6 @@ def main(on_display):
 
     manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
     repetitions = 1
-    processes = 1
 
     if run_on_command_line:
         option_string = input(
@@ -213,12 +195,14 @@ def main(on_display):
             processes = main_window_info['cores']
             run_name = main_window_info['run_name']
             tune_parameters = main_window_info['tune_parameters']
-            continue_tuning = False
+            continue_tuning = main_window_info['continue_tuning']
             repetitions = main_window_info['repetitions']
         elif option_num == 4:
             render_model_name = main_window_info['render_model_name']
             render_run = main_window_info['render_run'] if not main_window_info['all_runs'] else -1
             render_individuals = main_window_info['render_individuals']
+        elif option_num == 6:
+            return
 
         option = options[option_num]
 
@@ -229,7 +213,6 @@ def main(on_display):
                    repetitions)
         else:
             runAll(manipulator, run_name, parameters_variations, processes, run_on_command_line)
-
 
     # Initialize only
     elif option == options[2]:
@@ -282,15 +265,6 @@ def main(on_display):
 
 
 if __name__ == "__main__":
-    from Model.GeneticAlgorithm import GeneticAlgorithm
-    from Model.RoboticManipulator import RoboticManipulator
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from Model.JSONSaveLoad import JSONSaveLoad
-    from Model.MultiCoreExecuter import MultiCoreExecuter
-    import json
-    import sys
-
     try:
         on_display = sys.argv[1] == "-d"
     except IndexError:

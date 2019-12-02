@@ -17,7 +17,7 @@
     thickness: 2
     canvas:
         Color:
-            rgb: .24, .65, .94
+            rgb: .82, .82, .82
         Rectangle:
             pos: self.pos[0], separator.center_y
             size: separator.width, self.thickness
@@ -33,6 +33,7 @@
         Rectangle:
             pos: separator.center_x, self.pos[1]
             size: self.thickness, separator.height
+
 
 <RunWindow@GridLayout>:
     cols: 1
@@ -56,13 +57,23 @@
             on_active: app.tuneParametersCheckBox(*args)
     GridLayout:
         cols: 2
+        id: continue_tuning_layout
+        disabled: True
+        size_hint: 1, 0.08
+
+        Label:
+            text: 'Continue Tuning'
+        CheckBox:
+            active: False
+            on_active: app.continueTuningCheckBox(*args)
+
+    GridLayout:
+        cols: 2
         size_hint: 1, 0.08
         Label:
-            size_hint: 0.7, 1
             text: 'Default Parameters'
         CheckBox:
             id: use_defaults
-            size_hint: 0.2, 1
             on_active: app.on_checkbox_active(*args)
 
     GridLayout:
@@ -70,11 +81,9 @@
         size_hint: 1, 0.08
         Label:
             text: 'Repetitions:'
-            size_hint: 0.5, 1
         TextInput:
             multiline: False
             text: '1'
-            size_hint: 0.2, 1
             id: repetitions
 
     ScrollView:
@@ -151,8 +160,42 @@
                     height: self.minimum_height
                     id: individuals_selection
 
+<TuningResultsWindow@GridLayout>:
+    cols: 1
 
+    GridLayout:
+        cols: 2
+        size_hint: 1, 0.08
+        Label:
+            text: 'Select Model:'
+        Spinner:
+            id: tuning_model_selection
+            on_text: app.selectedModelForTuning(*args)
+    Button:
+        size_hint: 1, 0.08
+        text: 'Generate Tuning Results'
+        on_press: app.generateTuningDict()
+    GridLayout:
+        cols: 3
+        size_hint: 1, 0.08
+        Label:
+            size_hint_x: 0.5
+            text: 'Variable'
+        Label:
+            size_hint_x: 0.25
+            text: 'Best Values'
+        Label:
+            size_hint_x: 0.25
+            text: 'Fitness'
 
+    ScrollView:
+        id: tuning_scroll_view
+        GridLayout:
+            size_hint_y: None
+            cols: 1
+            row_default_height: root.height * 0.06
+            height: self.minimum_height
+            id: tuning_results
 
 <MainWindowGrid>:
     cols: 1
@@ -175,6 +218,9 @@
             Button:
                 on_press: app.findParetoFrontier()
                 text: "Find Pareto Frontier"
+            Button:
+                on_press: app.tuneModel()
+                text: "Generate Tuning Results Dictionary"
         GridLayout:
             cols: 1
             GridLayout:

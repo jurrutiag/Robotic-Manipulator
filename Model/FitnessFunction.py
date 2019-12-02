@@ -16,7 +16,7 @@ class FitnessFunction:
         self._distance_error_ponderation = distance_error_ponderation
         self._torques_error_ponderation = torques_error_ponderation * (1 / 256.79)
         self._velocity_error_ponderation = velocity_error_ponderation * (1 / 0.39)
-        self._delta_t = 1
+        self._delta_t = (total_time * 4) / sampling_points # x4 is a ponderator to set a base case
 
         self._torque = 0
         self._dist = 0

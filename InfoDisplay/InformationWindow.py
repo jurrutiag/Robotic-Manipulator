@@ -14,6 +14,7 @@ import ast
 import json
 from kivy.factory import Factory
 import os
+import matplotlib.pyplot as plt
 from definitions import PARAMETERS_VARIATIONS_INFO_DIR, MODEL_TRAININGS_DIR
 
 
@@ -44,6 +45,10 @@ class TabWithInfo(TabbedPanelItem):
             self.ids.velocity_label.text = str(velocity)
             self.ids.mean_fitness_label.text = str(info["mean_fitness"])
             self.ids.time_label.text = "%.2f s" % info["time_elapsed"]
+
+            if self.last_graphs is not None:
+                for graph in self.last_graphs:
+                    plt.close(graph)
 
             self.last_graphs = [info["fitness_graph"], info["individual_graph"], info["pareto_graph"]]
             self.showGraphs()
@@ -149,7 +154,8 @@ class MainWindow(App):
         self.default_params = default_params
         self.text_inputs = {}
         self.use_defaults = False
-        self.tune_parameters = True
+        self.tune_parameters = False
+        self.continue_tuning = False
         self.run_window = None
         self.cores = 1
         self.repetitions = 1
@@ -160,6 +166,10 @@ class MainWindow(App):
         self.render_model_name = ''
         self.render_run = 0
         self.all_runs = False
+
+        # Tuning
+        self.tuning_window = None
+        self.tuning_run = None
 
         self.information = {}
 
@@ -200,12 +210,18 @@ class MainWindow(App):
         self.root.ids.run_button.text = "Run (Find Pareto Frontier)"
         self.root.ids.info_layout.clear_widgets()
 
+    def tuneModel(self):
+        self.chosen_option = 6
+        self.root.ids.run_button.text = "Close"
+        self.root.ids.info_layout.clear_widgets()
+        self.tuningWindow()
+
     def runButton(self):
         if self.chosen_option == 1:
             self.parameters_variations = {key: ast.literal_eval('[' + t_input.text + ']') for key, t_input in self.text_inputs.items()}
 
             with open(PARAMETERS_VARIATIONS_INFO_DIR, 'w') as f:
-                json.dump(self.parameters_variations, f)
+                json.dump(self.parameters_variations, f, indent=4)
 
             try:
                 self.cores = int(self.run_window.ids.cores.text)
@@ -222,6 +238,7 @@ class MainWindow(App):
                 'cores': self.cores,
                 'run_name': self.run_window.ids.run_name.text,
                 'tune_parameters': self.tune_parameters,
+                'continue_tuning': self.continue_tuning,
                 'repetitions': self.repetitions
             }
         elif self.chosen_option == 4:
@@ -246,6 +263,10 @@ class MainWindow(App):
 
     def tuneParametersCheckBox(self, checkbox, value):
         self.tune_parameters = value
+        self.run_window.ids.continue_tuning_layout.disabled = not value
+
+    def continueTuningCheckBox(self, checkbox, value):
+        self.continue_tuning = value
 
     def runWindow(self):
         self.run_window = Factory.RunWindow()
@@ -269,6 +290,13 @@ class MainWindow(App):
 
         self.render_window.ids.model_selection.values = models
 
+    def tuningWindow(self):
+        self.tuning_window = Factory.TuningResultsWindow()
+        self.root.ids.info_layout.add_widget(self.tuning_window)
+        models = [name for name in os.listdir(MODEL_TRAININGS_DIR) if os.path.isdir(os.path.join(MODEL_TRAININGS_DIR, name))]
+
+        self.tuning_window.ids.tuning_model_selection.values = models
+
     def selectedModel(self, instance, model):
         self.render_model_name = model
 
@@ -289,6 +317,9 @@ class MainWindow(App):
             self.render_window.ids.individuals_selection.add_widget(Label(text=f'Individual {i}'))
             self.render_window.ids.individuals_selection.add_widget(self.individuals_checkboxes[i])
 
+    def selectedModelForTuning(self, instance, run):
+        self.tuning_run = str(run)
+
     def selectAllIndividuals(self):
         if all([chbox.active for chbox in self.individuals_checkboxes]):
             for chbox in self.individuals_checkboxes:
@@ -297,6 +328,55 @@ class MainWindow(App):
             for chbox in self.individuals_checkboxes:
                 chbox.active = True
 
+    def generateTuningDict(self):
+        if self.tuning_window is not None:
+            self.tuning_window.ids.tuning_results.clear_widgets()
+        if self.tuning_run is None:
+            return
+        else:
+            import main
+            from definitions import getTuningDict
+            import json
+
+            main.findDominantsFromTuning(self.tuning_run)
+            with open(getTuningDict(self.tuning_run)) as f:
+                tuning_dict = json.load(f)
+            for i, (key, val) in enumerate(tuning_dict["best"].items()):
+                widg = self.singleTuningInfo(**{"name": key, "values": val})
+                self.tuning_window.ids.tuning_results.add_widget(widg)
+                self.tuning_window.ids.tuning_results.rows_minimum[i] = self.tuning_window.ids.tuning_scroll_view.height * len(val) * 0.06
+
+
+    def singleTuningInfo(self, **kwargs):
+
+        top_layout = GridLayout()
+        top_layout.cols = 1
+        top_layout.add_widget(Factory.SeparatorY())
+
+        inside_layout = GridLayout()
+        inside_layout.cols = 2
+
+        param_name = Label()
+        param_name.text = kwargs["name"]
+
+        param_values = GridLayout()
+        param_values.cols = 2
+
+        for val in kwargs["values"]:
+            l_1 = Label()
+            l_1.text = str(val[0])
+            l_2 = Label()
+            l_2.text = "%.4f" % val[1]
+            param_values.add_widget(l_1)
+            param_values.add_widget(l_2)
+
+
+        inside_layout.add_widget(param_name)
+        inside_layout.add_widget(param_values)
+        top_layout.add_widget(inside_layout)
+        top_layout.add_widget(Factory.SeparatorY())
+
+        return top_layout
 
 def runInfoDisplay(queue, title, interrupting_queue):
     info_window = InformationWindow(queue=queue, title=title)

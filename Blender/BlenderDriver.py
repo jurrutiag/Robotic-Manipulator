@@ -94,13 +94,13 @@ class BlenderDriver:
                 A3.keyframe_insert(data_path="rotation_euler", index=-1)
 
 if __name__ == "__main__":
-    import sys
 
-    sys.path.insert(1, '../Model')
-    import numpy as np
-    import RoboticManipulator
-    import json
+    import sys
+    sys.path.insert(1, './')
     from definitions import BLENDER_CONFIG_DIR
+    import numpy as np
+    import json
+
 
     # np.random.seed(0)  # for testing
     manipulator_dimensions = [5, 5, 5, 5]
@@ -112,7 +112,6 @@ if __name__ == "__main__":
         desired_position = config["Desired Position"]
         total_time = config["Total time"]
 
-    manipulator = RoboticManipulator.RoboticManipulator(manipulator_dimensions, manipulator_mass)
     driver = BlenderDriver(gene, desired_position, manipulator_dimensions, seg=total_time)
     driver.execute()
 

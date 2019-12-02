@@ -89,10 +89,10 @@ class JSONSaveLoad:
             ind_graphs = GA.getIndividualsGraphs()
 
             for graph in ind_graphs:
-                if not os.path.exists(os.path.join(self._trained_models_dir, "Graphs",  "Individuals", index)):
-                    os.makedirs(os.path.join(self._trained_models_dir, "Graphs",  "Individuals", index))
+                if not os.path.exists(os.path.join(self._trained_models_dir, "Graphs",  "Individuals", str(index))):
+                    os.makedirs(os.path.join(self._trained_models_dir, "Graphs",  "Individuals", str(index)))
 
-                graph[0].savefig(os.path.join(self._trained_models_dir, "Graphs",  "Individuals", index, "best_individual_graph_" + str(index) + "_gen_" + str(graph[1])))
+                graph[0].savefig(os.path.join(self._trained_models_dir, "Graphs",  "Individuals", str(index), "best_individual_graph_" + str(index) + "_gen_" + str(graph[1])))
 
             plt.close('all')
 

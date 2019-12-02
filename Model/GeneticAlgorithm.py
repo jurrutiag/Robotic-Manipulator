@@ -214,7 +214,6 @@ class GeneticAlgorithm:
                         self._best_individuals_list.append(ind)
                         self.graphIndividual(ind[0], ind[1])
                         current_percentage += each_fitness_percentage
-                print(self._best_individuals_list)
 
 
                 self._display_handler.updateDisplay(terminate=True)
@@ -411,8 +410,9 @@ class GeneticAlgorithm:
                         [self.sharingFunction(np.linalg.norm(ind_2_mfitness - ind_mfitness)) for ind_mfitness in
                          np.delete(pop_fitnesses_normalized, ind_2_index, axis=0)])
 
-                    corrected_fit_1 = np.divide(ind_1.getFitness(), niche_ind_1)
-                    corrected_fit_2 = np.divide(ind_2.getFitness(), niche_ind_2)
+                    with np.errstate(divide='ignore'):
+                        corrected_fit_1 = np.divide(ind_1.getFitness(), niche_ind_1)
+                        corrected_fit_2 = np.divide(ind_2.getFitness(), niche_ind_2)
 
                     if corrected_fit_1 > corrected_fit_2:
                         self._parents.append(ind_1)
