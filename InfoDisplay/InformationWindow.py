@@ -380,12 +380,12 @@ class MainWindow(App):
 
         return top_layout
 
-def runInfoDisplay(queue, title, interrupting_queue, runs_len):
+def runInfoDisplay(queue, title, event, runs_len):
     info_window = InformationWindow(queue=queue, title=title, runs_len=runs_len)
     info_window.run()
 
-    if info_window.interrupted and interrupting_queue is not None:
-        interrupting_queue.value = 1
+    if info_window.interrupted and event is not None:
+        event.set()
 
 
 def runMainWindow(default_params):

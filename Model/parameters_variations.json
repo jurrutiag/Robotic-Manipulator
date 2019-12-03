@@ -4,11 +4,11 @@
     ],
     "cross_individual_prob": [
         0.5,
-        0.6,
-        0.7
+        0.6
     ],
     "cross_joint_prob": [
-        0.75
+        0.75,
+        0.5
     ],
     "desired_position": [
         [
@@ -33,7 +33,7 @@
         10
     ],
     "generation_threshold": [
-        2000
+        30
     ],
     "generations_progress_threshold": [
         50
@@ -42,9 +42,7 @@
         5
     ],
     "mut_individual_prob": [
-        0.5,
-        0.4,
-        0.6
+        0.5
     ],
     "mut_joint_prob": [
         0.25
@@ -81,24 +79,6 @@
             0,
             0.2,
             0.6,
-            0.2
-        ],
-        [
-            0,
-            0.1,
-            0.6,
-            0.3
-        ],
-        [
-            0,
-            0,
-            0.7,
-            0.3
-        ],
-        [
-            0,
-            0,
-            0.8,
             0.2
         ]
     ],

@@ -52,7 +52,8 @@ class GeneticAlgorithm:
                  exponential_initialization=False,
                  total_time=5,
                  individuals_to_display=5,
-                 model_process_and_id=(1, 1)):
+                 model_process_and_id=(1, 1),
+                 interrupt_event=None):
 
         # Algorithm info for save
 
@@ -61,6 +62,7 @@ class GeneticAlgorithm:
         del self._all_info["manipulator"]
         del self._all_info["self"]
         del self._all_info["model_process_and_id"]
+        del self._all_info["interrupt_event"]
 
         # Algorithm parameters
 
@@ -142,6 +144,7 @@ class GeneticAlgorithm:
         self._cores = cores
         self._in_queue = None
         self._out_queue = None
+        self._interrupt_event = interrupt_event
         self._processes = []
 
         if self._cores > 1:
@@ -180,7 +183,7 @@ class GeneticAlgorithm:
         while True:
 
             # Algorithm interruption
-            if MultiCoreExecuter.INTERRUPTING_FLAG.value:
+            if self._interrupt_event is not None and self._interrupt_event.is_set():
                 self.buryProcesses()
                 print("Interrupted...")
                 sys.exit(1)
