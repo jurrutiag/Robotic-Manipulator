@@ -19,10 +19,11 @@ from definitions import PARAMETERS_VARIATIONS_INFO_DIR, MODEL_TRAININGS_DIR
 
 
 class TabWithInfo(TabbedPanelItem):
-    def __init__(self, process, **kwargs):
+    def __init__(self, process, runs_len, **kwargs):
         super(TabWithInfo, self).__init__(**kwargs)
 
         self.process = process
+        self.runs_len = runs_len
 
         self.last_graphs = []
         self.param_value_model = None
@@ -37,7 +38,7 @@ class TabWithInfo(TabbedPanelItem):
             distance, torque, velocity = info["best_multi_fitness"]
             status = " (Running)" if not info["terminate"] else " (Finished)"
 
-            self.ids.model_label.text = str(info["model"][1]) + status
+            self.ids.model_label.text = f"{info['model'][1]}/{self.runs_len}" + status
             self.ids.generation_label.text = str(info["generation"])
             self.ids.fitness_label.text = str(info["best_fitness"])
             self.ids.distance_label.text = str(distance)
@@ -81,10 +82,11 @@ class TabWithInfo(TabbedPanelItem):
 
 class MainGrid(GridLayout):
 
-    def __init__(self, queue, **kwargs):
+    def __init__(self, queue, runs_len, **kwargs):
         super(MainGrid, self).__init__(**kwargs)
 
         self.queue = queue
+        self.runs_len = runs_len
         self.cores = []
         self.tabs = []
 
@@ -104,7 +106,7 @@ class MainGrid(GridLayout):
             process, model = element["model"]
 
             if process not in cores:
-                new_tab = TabWithInfo(process)
+                new_tab = TabWithInfo(process, self.runs_len)
                 new_tab.text = f"Process {len(cores) + 1}"
 
                 self.tabs.append(new_tab)
@@ -123,10 +125,11 @@ class MainWindowGrid(GridLayout):
 
 class InformationWindow(App):
 
-    def __init__(self, queue, title, **kwargs):
+    def __init__(self, queue, title, runs_len, **kwargs):
         super(InformationWindow, self).__init__(**kwargs)
         self.queue = queue
         self.title = 'Model: ' + title
+        self.runs_len = runs_len
         self.interrupted = False
 
     def on_request_close(self, *args):
@@ -143,7 +146,7 @@ class InformationWindow(App):
         Window.minimum_height = w_height
         Window.size = (w_width, w_height)
 
-        return MainGrid(self.queue)
+        return MainGrid(self.queue, self.runs_len)
 
 
 class MainWindow(App):
@@ -154,7 +157,7 @@ class MainWindow(App):
         self.default_params = default_params
         self.text_inputs = {}
         self.use_defaults = False
-        self.tune_parameters = False
+        self.all_combinations = False
         self.continue_tuning = False
         self.run_window = None
         self.cores = 1
@@ -237,7 +240,7 @@ class MainWindow(App):
                 'parameters_variations': self.parameters_variations,
                 'cores': self.cores,
                 'run_name': self.run_window.ids.run_name.text,
-                'tune_parameters': self.tune_parameters,
+                'all_combinations': self.all_combinations,
                 'continue_tuning': self.continue_tuning,
                 'repetitions': self.repetitions
             }
@@ -262,8 +265,7 @@ class MainWindow(App):
         self.all_runs = value
 
     def tuneParametersCheckBox(self, checkbox, value):
-        self.tune_parameters = value
-        self.run_window.ids.continue_tuning_layout.disabled = not value
+        self.all_combinations = value
 
     def continueTuningCheckBox(self, checkbox, value):
         self.continue_tuning = value
@@ -378,12 +380,12 @@ class MainWindow(App):
 
         return top_layout
 
-def runInfoDisplay(queue, title, interrupting_queue):
-    info_window = InformationWindow(queue=queue, title=title)
+def runInfoDisplay(queue, title, interrupting_queue, runs_len):
+    info_window = InformationWindow(queue=queue, title=title, runs_len=runs_len)
     info_window.run()
 
     if info_window.interrupted and interrupting_queue is not None:
-        interrupting_queue.put("exit")
+        interrupting_queue.value = 1
 
 
 def runMainWindow(default_params):

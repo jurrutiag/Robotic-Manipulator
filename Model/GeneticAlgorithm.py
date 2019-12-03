@@ -27,14 +27,14 @@ class GeneticAlgorithm:
                  print_module=None,
                  cores=1,
                  pop_size=150,
-                 cross_individual_prob=0.4,
+                 cross_individual_prob=0.5,
                  mut_individual_prob=0.5,
                  cross_joint_prob=0.75,
                  mut_joint_prob=0.25,
                  pairing_prob=0.5,
                  sampling_points=20,
                  torques_ponderations=(1, 1, 1, 1),
-                 generation_threshold=100,
+                 generation_threshold=2000,
                  fitness_threshold=1,
                  progress_threshold=1,
                  generations_progress_threshold=50,
@@ -142,9 +142,9 @@ class GeneticAlgorithm:
         self._cores = cores
         self._in_queue = None
         self._out_queue = None
+        self._processes = []
 
         if self._cores > 1:
-            self._processes = []
             self._in_queue = multiprocessing.Queue()
             self._out_queue = multiprocessing.Queue()
 
@@ -180,12 +180,10 @@ class GeneticAlgorithm:
         while True:
 
             # Algorithm interruption
-            if MultiCoreExecuter.INTERRUPTING_QUEUE is not None and not MultiCoreExecuter.INTERRUPTING_QUEUE.empty():
-                interrupting_info = MultiCoreExecuter.INTERRUPTING_QUEUE.get()
-                if interrupting_info == "exit":
-                    print("Interrupted...")
-                    self.buryProcesses()
-                    sys.exit(0)
+            if MultiCoreExecuter.INTERRUPTING_FLAG.value:
+                self.buryProcesses()
+                print("Interrupted...")
+                sys.exit(1)
 
             # if self._generation in self._individuals_to_display:
             #     self.graphIndividual()

@@ -8,7 +8,7 @@ from Model.PrintModule import PrintModule
 
 class MultiCoreExecuter:
 
-    INTERRUPTING_QUEUE = multiprocessing.Queue()
+    INTERRUPTING_FLAG = multiprocessing.Value('i', 0)
 
     def __init__(self, runs, manipulator, json_handler, processes=4, dedicated_screen=False, model_name='json_test'):
 
@@ -22,7 +22,7 @@ class MultiCoreExecuter:
         if dedicated_screen:
             self._info_queue = multiprocessing.Queue()
             from InfoDisplay.InformationWindow import runInfoDisplay
-            self._info_process = multiprocessing.Process(target=runInfoDisplay, args=(self._info_queue, model_name, MultiCoreExecuter.INTERRUPTING_QUEUE))
+            self._info_process = multiprocessing.Process(target=runInfoDisplay, args=(self._info_queue, model_name, MultiCoreExecuter.INTERRUPTING_FLAG, len(runs)))
             self._info_process.start()
 
     def run(self):
@@ -51,7 +51,7 @@ class MultiCoreExecuter:
             print_module.print(f"Running normal algorithm, multicore models with {self._processes} cores...", position="Current Information")
 
             for i in range(self._processes):
-                p = multiprocessing.Process(target=self.notBatchesExecuter, args=(runs_queue, print_module, i))
+                p = multiprocessing.Process(target=self.notBatchesExecuter, args=(runs_queue, print_module, i, MultiCoreExecuter.INTERRUPTING_FLAG))
                 processes.append(p)
                 p.start()
 
@@ -68,7 +68,8 @@ class MultiCoreExecuter:
         GA.runAlgorithm()
         self._json_handler.saveJson(GA)
 
-    def notBatchesExecuter(self, q_runs, print_module, n_proc):
+    def notBatchesExecuter(self, q_runs, print_module, n_proc, interrupting_flag):
+        MultiCoreExecuter.INTERRUPTING_FLAG = interrupting_flag
         i = 1
         print_module.initialize()
         print_module.setProcess(n_proc)
@@ -76,6 +77,7 @@ class MultiCoreExecuter:
             run = q_runs.get()
             if not self._dedicated_screen:
                 print_module.print(f"Running process {os.getpid()} on run {i} of this process.", color='red', position="Quick Information")
+
             GA = GeneticAlgorithm.GeneticAlgorithm(self._manipulator, print_module=print_module, model_process_and_id=(os.getpid(), i), **run)
             self.GAExecuter(GA)
             i += 1

@@ -20,6 +20,7 @@ class BlenderDriver:
         self._a4_prev_theta = np.array([0, 0, 0])
 
     def execute(self):
+
         A1 = bpy.data.objects["Aone"]
         A2 = bpy.data.objects["Atwo"]
         A3 = bpy.data.objects["Athree"]

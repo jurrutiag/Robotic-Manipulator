@@ -33,16 +33,18 @@ class JSONSaveLoad:
         self._parameters_variations = parameters_variations
         self._runs = None
 
-    def loadParameters(self, tune_parameters=False, continue_tuning=False, repetitions=1):
+    def loadParameters(self, all_combinations=False, continue_tuning=False, repetitions=1):
         runs = []
 
         default_parameters = self._GA.getAlgorithmInfo()
 
         keys, values = zip(*self._parameters_variations.items())
 
-        if not tune_parameters:
-            for v in itertools.product(*values):
-
+        if all_combinations:
+            all_combs = list(itertools.product(*values))
+            if continue_tuning:
+                all_combs = all_combs[1:]
+            for v in all_combs:
                 run = default_parameters.copy()
                 run_change = dict(zip(keys, v))
                 for key, val in run_change.items():

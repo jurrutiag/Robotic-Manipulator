@@ -9,12 +9,13 @@ import sys
 import os
 from definitions import getModelDir, getTuningDict
 
-def runAll(manipulator, run_name, parameters_variations, processes, run_on_command_line, tune_parameters=False, continue_tuning=False, repetitions=1):
+
+def runAll(manipulator, run_name, parameters_variations, processes, run_on_command_line, all_combinations=False, continue_tuning=False, repetitions=1):
     save_load_json = JSONSaveLoad(GA=GeneticAlgorithm(manipulator),
                                   save_filename=run_name,
                                   parameters_variations=parameters_variations)
 
-    save_load_json.loadParameters(tune_parameters=tune_parameters, continue_tuning=continue_tuning, repetitions=repetitions)
+    save_load_json.loadParameters(all_combinations=all_combinations, continue_tuning=continue_tuning, repetitions=repetitions)
 
     runs = save_load_json.getRuns()
     print(f"Executing models on {processes} cores...")
@@ -100,7 +101,7 @@ def findDominantsFromTuning(run_name):
             if not np.any([pg.pareto_dominance(others_fitness, multi_fitness)
                            for _, others_fitness in val.items() if others_fitness != multi_fitness]):
                 best_params[key].append((param_val, 1 / (
-                            1 + np.array(multi_fitness) @ np.array([1, 0.1 * (1 / 256.79), 0.1 * (1 / 0.39)]))))
+                            1 + np.array(multi_fitness) @ np.array([1, 0.1 * (1 / 256.79), 0 * (1 / 0.39)]))))
 
     with open(getTuningDict(run_name), 'w') as f:
         json.dump({"all": final_info_dictionary, "best": best_params}, f)
@@ -117,17 +118,10 @@ def main(on_display):
     options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling', 'Render', 'Find Pareto Frontier',
                'Tune Parámeters']
 
-    # Processes for multiprocessing
-    processes = 1
-
-    # Manipulator parameters
-    manipulator_dimensions = [5, 5, 5, 5]
-    manipulator_mass = [1, 1, 1]
-
     # Parameters to change on the json
     parameters_variations = {
         "cores": [8],
-        "cross_individual_prob": [0.4],
+        "cross_individual_prob": [0.5],
         "cross_joint_prob": [0.75],
         "desired_position": [[5, 5, 5]],
         "distance_error_ponderation": [1],
@@ -156,10 +150,18 @@ def main(on_display):
         "velocity_error_ponderation": [0]
     }
 
-    ## Execution
-
-    manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
+    all_combinations = False
+    continue_tuning = False
     repetitions = 1
+    processes = 1
+
+    # Manipulator parameters
+
+    manipulator_dimensions = [5, 5, 5, 5]
+    manipulator_mass = [1, 1, 1]
+    manipulator = RoboticManipulator(manipulator_dimensions, manipulator_mass)
+
+    ## Execution
 
     if run_on_command_line:
         option_string = input(
@@ -171,15 +173,12 @@ def main(on_display):
 
         if option in options[:2]:
             run_name = input("Enter the name for saving the run: ") if option == options[1] else 'json_test'
-            tune_parameters = input("Tune Parámeters? (Y/N)") == "Y"
-            if tune_parameters:
-                continue_tuning = input("Continue tuning? (Y/N)") == "Y"
-                try:
-                    repetitions = int(input("How many times per model? (integer)"))
-                except ValueError:
-                    repetitions = 1
-            else:
-                continue_tuning = False
+            all_combinations = input("All Combinations? (Y/N)") == "Y"
+            continue_tuning = input("Continue tuning? (Y/N)") == "Y"
+            try:
+                repetitions = int(input("How many times per model? (integer)"))
+            except ValueError:
+                repetitions = 1
 
     else:
         sys.path.insert(1, '../InfoDisplay')
@@ -194,7 +193,7 @@ def main(on_display):
             parameters_variations = main_window_info['parameters_variations']
             processes = main_window_info['cores']
             run_name = main_window_info['run_name']
-            tune_parameters = main_window_info['tune_parameters']
+            all_combinations = main_window_info['all_combinations']
             continue_tuning = main_window_info['continue_tuning']
             repetitions = main_window_info['repetitions']
         elif option_num == 4:
@@ -208,11 +207,8 @@ def main(on_display):
 
     # Run all
     if option in options[:2]:
-        if tune_parameters:
-            runAll(manipulator, run_name, parameters_variations, processes, run_on_command_line, tune_parameters, continue_tuning,
-                   repetitions)
-        else:
-            runAll(manipulator, run_name, parameters_variations, processes, run_on_command_line)
+        runAll(manipulator, run_name, parameters_variations, processes, run_on_command_line, all_combinations, continue_tuning,
+               repetitions)
 
     # Initialize only
     elif option == options[2]:
