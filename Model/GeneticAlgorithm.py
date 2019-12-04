@@ -277,11 +277,14 @@ class GeneticAlgorithm:
         self._population = results
 
     def evaluateFitness(self, population):
-        split_population = np.array_split(population, self._cores)
+        if self._cores > 1:
+            split_population = np.array_split(population, self._cores)
 
-        out_list = np.concatenate(self._process_pool.map(self._worker.calculateFitness, split_population))
+            out_list = np.concatenate(self._process_pool.map(self._worker.calculateFitness, split_population))
 
-        assert(len(out_list) == self._pop_size or len(out_list) == self._pop_size - self._elitism_size)
+            assert(len(out_list) == self._pop_size or len(out_list) == self._pop_size - self._elitism_size)
+        else:
+            out_list = self.singleCoreFitness(population)
 
         return out_list
 

@@ -31,7 +31,7 @@
         10
     ],
     "generation_threshold": [
-        40
+        2000
     ],
     "generations_progress_threshold": [
         50
