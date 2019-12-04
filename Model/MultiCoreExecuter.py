@@ -18,6 +18,7 @@ class MultiCoreExecuter:
         self._processes = processes
 
         self._dedicated_screen = dedicated_screen
+        self._event = None
 
         if dedicated_screen:
             self._manager = multiprocessing.Manager()
