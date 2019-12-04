@@ -112,7 +112,7 @@ def main(on_display):
 
     ## Configurations
 
-    # np.random.seed(0) # for testing
+    np.random.seed(0) # for testing
 
     # Select a running option.
     options = ['Run all, testing', 'Run All', 'Initialize only', 'Profiling', 'Render', 'Find Pareto Frontier',

@@ -49,7 +49,8 @@ class MultiCoreExecuter:
             p = multiprocessing.Pool(self._processes)
             multiCoreWorker = MultiCoreWorker(self._manipulator, self._json_handler, self._dedicated_screen, self._info_queue)
 
-            for run in self._runs:
+            for i, run in enumerate(self._runs):
+                run["index"] = i + 1
                 p.apply_async(multiCoreWorker.work, (run, self._event))
             p.close()
 
@@ -67,19 +68,6 @@ class MultiCoreExecuter:
         GA.runAlgorithm()
         self._json_handler.saveJson(GA)
 
-    def notBatchesExecuter(self, q_runs, print_module, n_proc, interrupting_flag):
-        MultiCoreExecuter.INTERRUPTING_FLAG = interrupting_flag
-        i = 1
-        print_module.initialize()
-        print_module.setProcess(n_proc)
-        while not q_runs.empty():
-            run = q_runs.get()
-            if not self._dedicated_screen:
-                print_module.print(f"Running process {os.getpid()} on run {i} of this process.", color='red', position="Quick Information")
-
-            GA = GeneticAlgorithm.GeneticAlgorithm(self._manipulator, print_module=print_module, model_process_and_id=(os.getpid(), i), **run)
-            self.GAExecuter(GA)
-            i += 1
 
 class MultiCoreWorker:
     def __init__(self, manipulator, json_handler, dedicated_screen, info_queue):
@@ -89,8 +77,10 @@ class MultiCoreWorker:
         self._info_queue = info_queue
 
     def work(self, run, event):
+        index = run["index"]
+        del run["index"]
         GA = GeneticAlgorithm.GeneticAlgorithm(self._manipulator, print_module=None,
-                                               model_process_and_id=(os.getpid(), 1), interrupt_event=event, **run)
+                                               model_process_and_id=(os.getpid(), index), interrupt_event=event, **run)
         if self._dedicated_screen:
             GA.setInfoQueue(self._info_queue)
 

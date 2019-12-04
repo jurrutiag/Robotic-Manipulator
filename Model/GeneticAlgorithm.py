@@ -148,13 +148,9 @@ class GeneticAlgorithm:
         self._processes = []
 
         if self._cores > 1:
-            self._in_queue = multiprocessing.Queue()
-            self._out_queue = multiprocessing.Queue()
-
-            for i in range(cores - 1):
-                p = multiprocessing.Process(target=self.multiCoreFitness, args=(self._in_queue, self._out_queue))
-                self._processes.append(p)
-                p.start()
+            self._manager = multiprocessing.Manager()
+            self._worker = GeneticWorker(self._fitness_function)
+            self._process_pool = multiprocessing.Pool(self._cores)
 
         # Information Display
 
@@ -283,13 +279,7 @@ class GeneticAlgorithm:
     def evaluateFitness(self, population):
         split_population = np.array_split(population, self._cores)
 
-        for mini_pop in split_population[:-1]:
-            self._in_queue.put(mini_pop)
-
-        out_list = self.singleCoreFitness(split_population[-1])
-
-        for i in range(self._cores - 1):
-            out_list = np.concatenate((out_list, self._out_queue.get()))
+        out_list = np.concatenate(self._process_pool.map(self._worker.calculateFitness, split_population))
 
         assert(len(out_list) == self._pop_size or len(out_list) == self._pop_size - self._elitism_size)
 
@@ -300,13 +290,6 @@ class GeneticAlgorithm:
             self._fitness_function.evaluateSeparateFitnesses(individual)
 
         return population
-
-    def multiCoreFitness(self, in_queue, out_queue):
-        while True:
-            pop = in_queue.get()
-            if list(pop) == list("finish"):
-                break
-            out_queue.put(self.singleCoreFitness(pop))
 
     def angleCorrection(self):
         angle_limits = self._manipulator.getLimits()
@@ -719,11 +702,8 @@ class GeneticAlgorithm:
 
     def buryProcesses(self):
 
-        for i in range(self._cores - 1):
-            self._in_queue.put("finish")
-
-        for p in self._processes:
-            p.join()
+        self._process_pool.terminate()
+        self._process_pool.join()
 
     def setInfoQueue(self, queue):
         self._info_queue = queue
@@ -800,3 +780,14 @@ class GeneticAlgorithm:
     def getDefaults():
         GA = GeneticAlgorithm(None, GeneticAlgorithm.DEFAULT_POSITION)
         return GA.getAlgorithmInfo()
+
+
+class GeneticWorker:
+    def __init__(self, fitness_function):
+        self._fitness_function = fitness_function
+
+    def calculateFitness(self, population):
+        for individual in population:
+            self._fitness_function.evaluateSeparateFitnesses(individual)
+
+        return population
