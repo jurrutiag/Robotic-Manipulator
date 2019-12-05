@@ -63,15 +63,13 @@ garden install matplotlib
 On windows the previous command throws an error, this is because the path to garden.py may have spaces in between, in order to fix this, copy the command that appears as ran on the error thrown, and type double quotes around the path, for example if the error throws that this command was called:
 
 ```
-python.exe Path\To\gar
-den install matplotlib
+python.exe Path\To\garden install matplotlib
 ```
 
 Rewrite as the following command and run it:
 
 ```
-python.exe "Path\To\gar
-den" install matplotlib
+python.exe "Path\To\garden" install matplotlib
 ```
 
 ## Authors
