@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from Model import Individual
@@ -187,8 +187,7 @@ class GeneticAlgorithm:
             # if self._generation in self._individuals_to_display:
             #     self.graphIndividual()
             #     self._best_individuals_list.append([self._best_individual.getGenes().tolist(), self._generation])
-            if self._generation % 2 == 0 or self._generation in [1, self._generation_threshold]:
-                self._best_individuals_candidates.append([self._best_individual.getGenes().tolist(), self._generation, self._best_individual.getFitness()])
+            self._best_individuals_candidates.append([self._best_individual.getGenes().tolist(), self._generation, self._best_individual.getFitness()])
 
             self._display_handler.updateDisplay()
 
@@ -681,10 +680,13 @@ class GeneticAlgorithm:
             plt.close(self._last_pareto_frontier)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
+        #ax = fig.add_subplot(111)
         f_distance, f_torque, f_velocity = zip(*[ind.getMultiFitness() for ind in self._population])
         dominants_x, dominants_y, dominants_z = zip(*self.paretoFrontierIndividuals(self._population))
         ax.scatter(f_distance, f_torque, f_velocity, zorder=-1)
         ax.scatter(dominants_x, dominants_y, dominants_z, color='red', zorder=1, alpha=1)
+        # ax.scatter(f_distance, f_torque, zorder=-1)
+        # ax.scatter(dominants_x, dominants_y, color='red', zorder=1, alpha=1)
         xlim = [0, 16]
         ylim = [0, 8000]
         zlim = [0, 6]

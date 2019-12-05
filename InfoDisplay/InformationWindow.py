@@ -15,7 +15,7 @@ import json
 from kivy.factory import Factory
 import os
 import matplotlib.pyplot as plt
-from definitions import PARAMETERS_VARIATIONS_INFO_DIR, MODEL_TRAININGS_DIR
+from definitions import PARAMETERS_VARIATIONS_INFO_DIR, MODEL_TRAININGS_DIR, getModelDir
 
 
 class TabWithInfo(TabbedPanelItem):
@@ -311,12 +311,15 @@ class MainWindow(App):
         self.render_run = int(run)
 
         self.render_window.ids.individuals_selection.clear_widgets()
-        amount_of_individuals = len([name for name in os.listdir(os.path.join(MODEL_TRAININGS_DIR, self.render_model_name, 'Graphs', 'Individuals', run)) if os.path.isfile(os.path.join(MODEL_TRAININGS_DIR, self.render_model_name, 'Graphs', 'Individuals', run, name))])
+        with open(getModelDir(self.render_model_name)) as f:
+            model_data = json.load(f)
+        run_data = model_data["Best Individuals"][self.render_run]
+        individuals = run_data["Genes"]
 
         self.individuals_checkboxes = []
-        for i in range(amount_of_individuals):
+        for i, ind in enumerate(individuals):
             self.individuals_checkboxes.append(CheckBox())
-            self.render_window.ids.individuals_selection.add_widget(Label(text=f'Individual {i}'))
+            self.render_window.ids.individuals_selection.add_widget(Label(text=f'Individual {i} (fit: %.4f)' % ind[2]))
             self.render_window.ids.individuals_selection.add_widget(self.individuals_checkboxes[i])
 
     def selectedModelForTuning(self, instance, run):

@@ -1,6 +1,6 @@
 {
     "cores": [
-        4
+        8
     ],
     "cross_individual_prob": [
         0.5
@@ -10,9 +10,9 @@
     ],
     "desired_position": [
         [
-            5,
-            5,
-            5
+            -5,
+            -6,
+            7
         ]
     ],
     "distance_error_ponderation": [
@@ -31,13 +31,13 @@
         10
     ],
     "generation_threshold": [
-        2000
+        1000
     ],
     "generations_progress_threshold": [
         50
     ],
     "individuals_to_display": [
-        5
+        40
     ],
     "mut_individual_prob": [
         0.5
