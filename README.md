@@ -7,7 +7,22 @@ The robotic manipulator will be modeled using the Denavit-Hartenberg convention 
 This project is developed in the context of the subject EL4106 - Inteligencia Computacional from Universidad de Chile. 
 
 # How to use
-The root directory contains 'main.py', the file that can run the algorithm importing the relevant parts. The following modules are called inside main.py:
+The root directory contains 'main.py', the file that can run the algorithm importing the relevant parts. In order to run the algorithm on the command line, the following command must be called:
+
+```
+python main.py
+```
+
+If instead, you want to run the algorithm using the UI, run the following command:
+
+```
+python main.py -d
+```
+
+
+# The Modules
+
+The following modules are called inside main.py:
 
 * **RoboticManipulator.py:** Module containing the logic of the robotic manipulator, this defines the manipulator object which contains the joint masses, length of the arms and limits of the motors.
 
