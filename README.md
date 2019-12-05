@@ -7,9 +7,38 @@ The robotic manipulator will be modeled using the Denavit-Hartenberg convention 
 This project is developed in the context of the subject EL4106 - Inteligencia Computacional from Universidad de Chile. 
 
 # How to use
-The Model folder contains 'main.py', the file that can run the algorithm importing the relevant parts.
+The root directory contains 'main.py', the file that can run the algorithm importing the relevant parts. In order to run the algorithm on the command line, the following command must be called:
 
-'RoboticManipulator.py' contains the logic of the manipulator itself, 'FitnessFunction.py' contains the logic of the fitnes function used, and 'GeneticAlgorithm.py' features the algorithm itself, using individuals modeled with the Individual class contained in 'Individual.py'.
+```
+python main.py
+```
+
+If instead, you want to run the algorithm using the UI, run the following command:
+
+```
+python main.py -d
+```
+
+
+# The Modules
+
+The following modules are called inside main.py:
+
+* **RoboticManipulator.py:** Module containing the logic of the robotic manipulator, this defines the manipulator object which contains the joint masses, length of the arms and limits of the motors.
+
+* **FitnessFunction.py:** Module containing the logic of the fitness function, calculations of distance, torque and velocity are done with the FitnessFunction object.
+
+* **GeneticAlgorithm.py:** Module that contains the GeneticAlgorithm class, this contains all the logic of the continuous genetic algorithm used for solving the optimization problem.
+
+* **Individual.py:** Contains the class for the representation of an individual.
+
+* **DisplayHandler.py:** This module is in charge of displaying the information to the UI or terminal.
+
+* **JSONSaveLoad.py:** This module contains the class that handles the load and creation of .json files for the algorithm input and output.
+
+* **MultiCoreExecuter.py:** This module is in charge of executing all the runs of the algorithm.
+
+* **PrintModule.py:** Module used to print the output in a readable way.
 
 # Pre installations
 
@@ -30,6 +59,17 @@ pip install -r requirements.txt
 Then, in order to be able to visualize the data with the UI, please run:
 ```
 garden install matplotlib
+```
+On windows the previous command throws an error, this is because the path to garden.py may have spaces in between, in order to fix this, copy the command that appears as ran on the error thrown, and type double quotes around the path, for example if the error throws that this command was called:
+
+```
+python.exe Path\To\garden install matplotlib
+```
+
+Rewrite as the following command and run it:
+
+```
+python.exe "Path\To\garden" install matplotlib
 ```
 
 ## Authors
